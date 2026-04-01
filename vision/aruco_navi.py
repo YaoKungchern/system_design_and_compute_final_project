@@ -4,7 +4,7 @@ import numpy as np
 
 # ===================== 加载你刚才标定的相机参数 =====================
 # 确保 camera_params.npz 和本代码在同一文件夹
-params = np.load(f"vision/camera_calib_params.npz")
+params = np.load(r"vision/camera_calib_params.npz")
 mtx = params["mtx"]    # 内参矩阵
 dist = params["dist"]  # 畸变系数
 # ==================================================================
@@ -17,7 +17,7 @@ parameters = aruco.DetectorParameters()
 cap = cv2.VideoCapture(1)
 
 # 【改成你打印的 ArUco 真实物理尺寸，单位：米！】
-MARKER_SIZE = 0.1  # 5cm → 0.05m，自己按实际改
+MARKER_SIZE = 0.05  # 5cm → 0.05m，自己按实际改
 
 print("按 q 退出")
 
@@ -63,6 +63,8 @@ while True:
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,0),2)
             cv2.putText(frame, angle_info, (10, 90+i*40),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,255),2)
+            
+            # print(info)
 
     cv2.imshow("ArUco position", frame)
 
