@@ -15,14 +15,21 @@ Fifo uart1_fifo;
 Fifo uart2_fifo;
 
 uint8_t tx_buffer[64];
+uint8_t uart3_buffer[64];
+uint8_t uart3_ptr;
+uint8_t uart3_cnt;
+uint8_t uart3_flag;
 
 uint8_t control_flag;
-float control_value;
+vector2D control_value;
+
 
 extern pid force_pid;
 extern pid position_pid;
-extern impedance_ctrl impedance_controller;
-extern admittance_ctrl admittance_controller;
+
+extern ultrasonic_sensor ultrasonic_sys;
+extern base_sys2D rover_pos;
+extern base_sys2D rover_vel;
 
 /*数据帧格式：
 头(2字节) + 命令字(1字节) + 数据区(n字节) + 校验字节(1字节) + 尾(2字节)
@@ -34,13 +41,17 @@ extern admittance_ctrl admittance_controller;
  */
 void UartInit(void)
 {
-    uint8_t head[2] = {0xfa, 0xaf};
-    uint8_t end[2]  = {0xfb, 0xbf};
-    Fifo_Init(&uart1_fifo, 200, 2, 2, head, end);
-    Fifo_Init(&uart2_fifo, 200, 2, 2, head, end);
+    uint8_t head_uart2[2] = {0xfa, 0xaf};
+    uint8_t end_uart2[2]  = {0xfb, 0xbf};
+    uint8_t head_uart1[2] = {STEP_MOTOR_ID};
+    uint8_t end_uart1[2]  = {STEP_MOTOR_CHECK};
 
-    HAL_UART_Receive_IT(&huart1, (uint8_t *)&(uart1_fifo.fifo[uart1_fifo.pointer]), 1);
+    Fifo_Init(&uart2_fifo, 200, 2, 2, head_uart2, end_uart2);
+    Fifo_Init(&uart1_fifo, 200, 1, 1, head_uart1, end_uart1);
+
     HAL_UART_Receive_IT(&huart2, (uint8_t *)&(uart2_fifo.fifo[uart2_fifo.pointer]), 1);
+    HAL_UART_Receive_IT(&huart1, (uint8_t *)&(uart1_fifo.fifo[uart1_fifo.pointer]), 1);
+    HAL_UART_Receive_IT(&huart3, (uint8_t *)&(uart3_buffer[uart3_ptr]), 1);
 }
 
 /**
@@ -57,7 +68,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         if (ret == FIFO_RECEIVED)
         {
             // 处理数据
-            serial_solve(uart1_fifo.fifo);
+            uart1_solve(uart1_fifo.fifo);
         }
         // 再次接收
         HAL_UART_Receive_IT(&huart1, (uint8_t *)&(uart1_fifo.fifo[uart1_fifo.pointer]), 1);
@@ -67,10 +78,40 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         ret = Fifo_RefreshExternal(&uart2_fifo);
         if (ret == FIFO_RECEIVED)
         {
-            serial_solve(uart2_fifo.fifo);
+            uart2_solve(uart2_fifo.fifo);
         }
         // 再次接收
         HAL_UART_Receive_IT(&huart2, (uint8_t *)&(uart2_fifo.fifo[uart2_fifo.pointer]), 1);
+    }
+    if(huart == &huart3)
+    {
+        if(uart3_buffer[uart3_ptr] == 0xFF)
+        {
+            uart3_ptr = 0;
+            uart3_cnt = 0;
+            uart3_flag = 1;
+        }
+        if(uart3_flag)
+        {
+            uart3_cnt++;
+        }
+        if(uart3_cnt == 4)
+        {
+            if(uart3_buffer[3] == uart3_buffer[0]+uart3_buffer[1]+uart3_buffer[2])
+            {
+                ultrasonic_sys.distance = (float)(uart3_buffer[1]<<8 | uart3_buffer[2]) / 1000.0f;
+                tx_buffer[0]=STEP_MOTOR_ID;
+                tx_buffer[1]=0x36;
+                tx_buffer[2]=STEP_MOTOR_CHECK;
+                HAL_UART_Transmit_IT(ultrasonic_sys.huart_stepmotor, tx_buffer, 3);
+                uart3_flag = 0;
+                uart3_cnt = 0;
+                uart3_ptr = 0;
+            }
+        }
+        if(uart3_ptr > 63) uart3_ptr = 0;
+        else uart3_ptr++;
+        HAL_UART_Receive_IT(&huart3, (uint8_t *)&(uart3_buffer[uart3_ptr]), 1);
     }
 }
 
@@ -96,7 +137,7 @@ uint8_t check_data(uint8_t *buf, int len)
  *
  * @param buf 接收缓冲区
  */
-void serial_solve(uint8_t *buf)
+void uart2_solve(uint8_t *buf)
 {
   switch(buf[2])
   {
@@ -133,6 +174,19 @@ void serial_solve(uint8_t *buf)
   }
 }
 
+void uart1_solve(uint8_t *buf)
+{
+    if(buf[1] == 0x36 && buf[7] == STEP_MOTOR_CHECK)
+    {
+        uint32_t angle;
+        memcpy(&angle, buf + 3, sizeof(uint32_t));
+        ultrasonic_sys.angle = -(buf[2]*2-1) * (angle * 2 * PI) / 65536.0f;
+        ultrasonic_sys.angle = angle_correct_rad(ultrasonic_sys.angle);
+        ultrasonic_info ultrasonic_buffer;
+        write_ultrasonic_info(&ultrasonic_buffer);
+    }
+}
+
 void write_control_info(control_info *p_control)
 {
     if(control_flag != p_control->mode)
@@ -141,29 +195,23 @@ void write_control_info(control_info *p_control)
     control_value = p_control->value;
 }
 
-void write_compliance_info(compliance_info *p_compliance)
+void write_navigation_info(navigation_info *p_navigation);
 {
-    impedance_controller.m = p_compliance->m;
-    impedance_controller.b = p_compliance->b;
-    impedance_controller.k = p_compliance->k;
-
-    admittance_controller.m = p_compliance->m;
-    admittance_controller.b = p_compliance->b;
-    admittance_controller.k = p_compliance->k;
+    rover_pos.vector = p_navigation->position;
+    vector2matrix(&rover_pos);
 }
 
-void read_compliance_info(compliance_info *p_compliance)
+void read_navigation_info(navigation_info *p_navigation);
 {
-    p_compliance->rw_flag = 1;
-    p_compliance->m = impedance_controller.m;
-    p_compliance->b = impedance_controller.b;
-    p_compliance->k = impedance_controller.k;
-    memcpy(tx_buffer, uart1_fifo.head, 2);
+    p_navigation->rw_flag = 1;
+    p_navigation->position = rover_pos.vector;
+    p_navigation->velocity = rover_vel.vector;
+    memcpy(tx_buffer, uart2_fifo.head, 2);
     tx_buffer[2] = 0x43;
-    memcpy(tx_buffer + 3, p_compliance, sizeof(compliance_info));
-    tx_buffer[3 + sizeof(compliance_info)] = check_data(tx_buffer + 2, sizeof(compliance_info) + 1);
-    memcpy(tx_buffer + 4 + sizeof(compliance_info), uart1_fifo.end, 2);
-    HAL_UART_Transmit_IT(&huart1, tx_buffer, 6 + sizeof(compliance_info));
+    memcpy(tx_buffer + 3, p_navigation, sizeof(navigation_info));
+    tx_buffer[3 + sizeof(navigation_info)] = check_data(tx_buffer + 2, sizeof(navigation_info) + 1);
+    memcpy(tx_buffer + 4 + sizeof(navigation_info), uart2_fifo.end, 2);
+    HAL_UART_Transmit_IT(&huart2, tx_buffer, 6 + sizeof(navigation_info));
 }
 
 void write_pid_info(pid_info *p_pid)
@@ -218,6 +266,29 @@ void read_pid_info(pid_info *p_pid, uint8_t control_id)
     tx_buffer[3 + sizeof(pid_info)] = check_data(tx_buffer + 2, sizeof(pid_info) + 1);
     memcpy(tx_buffer + 4 + sizeof(pid_info), uart1_fifo.end, 2);
     HAL_UART_Transmit_IT(&huart1, tx_buffer, 6 + sizeof(pid_info));
+}
+
+void write_ultrasonic_info(ultrasonic_info *p_ultrasonic)
+{
+        float x = cos(ultrasonic_sys.angle) * ultrasonic_sys.distance;
+        float y = sin(ultrasonic_sys.angle) * ultrasonic_sys.distance;
+        base_sys2D barrier_rover;
+        base_sys2D barrier_base;
+        base_sys_set_by_vector(&barrier_rover, x, y, 0.0f);
+        base2world(&rover_pos, &barrier_rover, &barrier_base);
+        ultrasonic_sys.x = barrier_base.vector.x;
+        ultrasonic_sys.y = barrier_base.vector.y;
+        p_ultrasonic->distance = ultrasonic_sys.distance;
+        p_ultrasonic->angle = ultrasonic_sys.angle;
+        p_ultrasonic->x = ultrasonic_sys.x;
+        p_ultrasonic->y = ultrasonic_sys.y;
+        memcpy(tx_buffer, uart2_fifo.head, 2);
+        tx_buffer[2] = 0x55;
+        memcpy(tx_buffer + 3, p_ultrasonic, sizeof(ultrasonic_info));
+        tx_buffer[3 + sizeof(ultrasonic_info)] = check_data(tx_buffer + 2, sizeof(ultrasonic_info) + 1);
+        memcpy(tx_buffer + 4 + sizeof(ultrasonic_info), uart2_fifo.end, 2);
+        HAL_UART_Transmit_IT(&huart2, tx_buffer, 6 + sizeof(ultrasonic_info));
+
 }
 
 

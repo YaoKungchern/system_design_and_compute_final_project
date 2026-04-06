@@ -23,6 +23,9 @@
 #define TIRE_RADIUS 0.05f ///< 轮子半径
 
 #define MOTOR_PWM_MAX 1000 // 最大PWM占空比
+#define SERVO_PWM_MAX 20000 // 180度舵机最大PWM占空比
+#define SERVO_PWM_MIN 500 // 180度舵机最小PWM占空比
+
 
 typedef enum {
     OPEN_LOOP = 0,
@@ -57,6 +60,11 @@ typedef struct {
 
 } dc_motor;
 
+typedef struct {
+    TIM_HandleTypeDef *htim; ///< 定时器句柄
+    uint32_t channel;        ///< 定时器通道
+} servo_180;
+
 void motor_init(dc_motor *motor, TIM_HandleTypeDef *htim, uint32_t channel, 
     TIM_HandleTypeDef *enc_htim, GPIO_TypeDef *gpio_port_1, uint16_t gpio_pin_1, 
     GPIO_TypeDef *gpio_port_2, uint16_t gpio_pin_2,
@@ -64,6 +72,11 @@ void motor_init(dc_motor *motor, TIM_HandleTypeDef *htim, uint32_t channel,
 
 void motor_set_state(dc_motor *motor, dc_motor_state state);    
 void motor_update(dc_motor *motor, float input);
+
+void servo_180_init(servo_180 *servo, TIM_HandleTypeDef *htim, uint32_t channel);
+void servo_180_set_angle(servo_180 *servo, float angle);
+
+
 
 #pragma pack(pop)
 

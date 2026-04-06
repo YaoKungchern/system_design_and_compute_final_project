@@ -15,9 +15,12 @@
  #pragma pack(push)
  #pragma pack(1)
 
-#define deg2rad 0.01745329252f // 角度制转弧度制
-#define rad2deg 57.29577951f   // 弧度制转角度制
-#define pi 3.1415926535f        // 圆周率
+ #include <math.h>
+ #include <string.h>
+
+#define DEG2RAD 0.01745329252f // 角度制转弧度制
+#define RAD2DEG 57.29577951f   // 弧度制转角度制
+#define PI 3.1415926535f        // 圆周率
 
  typedef struct {
     float x; ///< x坐标

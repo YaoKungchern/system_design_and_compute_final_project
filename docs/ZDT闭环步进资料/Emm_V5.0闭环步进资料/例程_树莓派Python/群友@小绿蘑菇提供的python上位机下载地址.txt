@@ -1,0 +1,2 @@
+感谢群友：@小绿蘑菇提供的python上位机下载链接：
+我照着说明书写了个完善的python上位机，https://github.com/lyehe/ZDT_stepper 有兴趣可以拿去用

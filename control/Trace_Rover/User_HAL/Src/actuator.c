@@ -129,6 +129,22 @@ void motor_update(dc_motor *motor, float input) {
     }
 }
 
+void servo_180_init(servo_180 *servo, TIM_HandleTypeDef *htim, uint32_t channel) {
+    servo->htim = htim;
+    servo->channel = channel;
+    HAL_TIM_PWM_Start(servo->htim, servo->channel);
+}
+
+void servo_180_set_angle(servo_180 *servo, float angle) {
+    // 限制角度范围
+    angle = fmax(angle, 0.0f);
+    angle = fmin(angle, 180.0f);
+    // 将角度转换为PWM占空比
+    uint16_t pwm_value = (uint16_t)((angle / 180.0f) * SERVO_PWM_MAX + SERVO_PWM_MIN);
+    __HAL_TIM_SET_COMPARE(servo->htim, servo->channel, pwm_value);
+}
+
+
 
 /*__||_____||__
   __||_____||__

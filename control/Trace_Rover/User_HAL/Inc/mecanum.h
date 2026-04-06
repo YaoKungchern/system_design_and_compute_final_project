@@ -27,7 +27,7 @@ typedef struct {
 } mecanum;
 
 void mecanum_init(mecanum *m);
-void mecanum_forward_kinematics(mecanum *m, float wheel[4]);
+void mecanum_forward_kinematics(mecanum *m, float wheels[4]);
 void mecanum_inverse_kinematics(mecanum *m, vector2D chassis);
 
 #pragma pack(pop)

@@ -18,11 +18,12 @@
 #include "main.h"
 #include "fifo.h"
 #include "pid.h"
-#include "compliance.h"
+#include "ultrasonic.h"
 #include <string.h>
 
 void UartInit(void);
-void serial_solve(uint8_t *buf);
+void uart2_solve(uint8_t *buf);
+void uart1_solve(uint8_t *buf);
 
 typedef struct
 {
@@ -41,23 +42,31 @@ typedef struct
 typedef struct
 {
     uint8_t rw_flag; // 读写标志位，0表示写，1表示读
-    float m; // 质量系数
-    float b; // 阻尼系数
-    float k; // 刚度系数
-}compliance_info;
+    vector2D position; // 机器人位置
+    vector2D velocity; // 机器人速度
+}navigation_info;
 
 typedef struct
 {
     uint8_t mode; // 模式切换：
-    //0x00开环 0x01位置闭环 0x02力闭环 0x03阻抗控制 0x04导纳控制 0xFF不切换模式
-    float value; // 目标值
+    //模式切换：0x00.开环 0x01.速度闭环（机器人坐标系） 0x02.速度闭环（世界坐标系） 0x03.位置闭环（机器人坐标系） 0x04.位置闭环（世界坐标系）  0xFF.不切换模式
+    vector2D value; // 目标值
 }control_info;
 
+typedef struct
+{
+    float distance; // 距离值，单位为米
+    float angle; // 角度值，单位为弧度
+    float x; // X坐标，单位为米
+    float y; // Y坐标，单位为米
+} ultrasonic_info;
+
 void write_control_info(control_info *p_control);
-void write_compliance_info(compliance_info *p_compliance);
-void read_compliance_info(compliance_info *p_compliance);
+void write_navigation_info(navigation_info *p_navigation);
+void read_navigation_info(navigation_info *p_navigation);
 void write_pid_info(pid_info *p_pid);
 void read_pid_info(pid_info *p_pid, uint8_t control_id);
+void write_ultrasonic_info(ultrasonic_info *p_ultrasonic);
 
 #pragma pack(pop)
 
