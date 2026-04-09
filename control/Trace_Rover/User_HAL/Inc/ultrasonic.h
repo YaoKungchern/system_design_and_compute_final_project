@@ -21,6 +21,8 @@
 #define STEP_MOTOR_ID 0x01 ///< 步进电机ID
 #define STEP_MOTOR_CHECK 0x6B ///< 步进电机校验和
 
+#define ANGLE_DIFF 0.0f ///< 角度差值，单位为弧度
+
 
 typedef struct {
     UART_HandleTypeDef *huart_ultrasonic; ///< 超声波传感器使用的UART句柄
@@ -31,8 +33,7 @@ typedef struct {
     float y; ///< 世界坐标系的y坐标，单位为米
 } ultrasonic_sensor;
 
-void ultrasonic_init(ultrasonic_sensor *ultrasonic);
-void ultrasonic_motor_update(ultrasonic_sensor *ultrasonic, base_sys2D *rover_base);
+void ultrasonic_init(ultrasonic_sensor *ultrasonic, UART_HandleTypeDef *huart_ultrasonic, UART_HandleTypeDef *huart_stepmotor, uint16_t rotate_speed);
 
 #pragma pack(pop)
 #endif /* __ULTRASONIC_H */

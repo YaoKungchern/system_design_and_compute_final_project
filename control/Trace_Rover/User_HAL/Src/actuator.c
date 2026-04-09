@@ -89,12 +89,12 @@ void motor_set_state(dc_motor *motor, dc_motor_state state) {
  */
 void motor_update(dc_motor *motor, float input) {
     // 读取编码器计数
-    int32_t encoder_count = __HAL_TIM_GET_COUNTER(motor->enc_htim);
+    int16_t encoder_count = (int16_t)__HAL_TIM_GET_COUNTER(motor->enc_htim);    // 强制将32位寄存器和16位寄存器统一成int16_t
     float delta_position = (encoder_count / ENCODER_PPR) * (2 * 3.1415926535f * TIRE_RADIUS) / ENCODER_GEAR_RATIO;
     __HAL_TIM_SET_COUNTER(motor->enc_htim, 0); // 重置编码器计数
 
     // 计算当前速度和位置
-    motor->real_position += delta_position;
+    motor->real_position -= delta_position;
     uint32_t current_time = HAL_GetTick();
     motor->real_speed = delta_position / ((current_time - motor->last_time) / 1000.0f);
     motor->last_time = current_time;
@@ -108,7 +108,7 @@ void motor_update(dc_motor *motor, float input) {
     case SPEED_LOOP:
         // 速度环控制
         motor->target_speed = input;
-        pid_update(&motor->v_pid, motor->target_speed - motor->real_speed);
+        pid_refresh(&motor->v_pid, motor->target_speed - motor->real_speed);
         motor_output(motor, motor->v_pid.output);
         break;
     case POSITION_LOOP:
@@ -116,11 +116,11 @@ void motor_update(dc_motor *motor, float input) {
         // 外环：位置环
         motor->target_position = input;
         float position_error = motor->target_position - motor->real_position;
-        pid_update(&motor->p_pid, position_error);
+        pid_refresh(&motor->p_pid, position_error);
         // 内环：速度环
         motor->target_speed = motor->p_pid.output;
         float speed_error = motor->target_speed - motor->real_speed;
-        pid_update(&motor->v_pid, speed_error);
+        pid_refresh(&motor->v_pid, speed_error);
         motor_output(motor, motor->v_pid.output);
         break;
     
@@ -129,12 +129,25 @@ void motor_update(dc_motor *motor, float input) {
     }
 }
 
+/**
+ * @brief 初始化180度舵机
+ * 
+ * @param servo 180度舵机指针
+ * @param htim 定时器句柄
+ * @param channel 定时器通道
+ */
 void servo_180_init(servo_180 *servo, TIM_HandleTypeDef *htim, uint32_t channel) {
     servo->htim = htim;
     servo->channel = channel;
     HAL_TIM_PWM_Start(servo->htim, servo->channel);
 }
 
+/**
+ * @brief 设置180度舵机的角度
+ * 
+ * @param servo 180度舵机指针
+ * @param angle 角度值，范围为0到180度
+ */
 void servo_180_set_angle(servo_180 *servo, float angle) {
     // 限制角度范围
     angle = fmax(angle, 0.0f);

@@ -20,16 +20,21 @@ uint8_t uart3_ptr;
 uint8_t uart3_cnt;
 uint8_t uart3_flag;
 
-uint8_t control_flag;
-vector2D control_value;
+extern ctrl_state control_state;
+extern vector2D control_value;
 
 
-extern pid force_pid;
-extern pid position_pid;
+extern pid vel_pid[4];
+extern pid pos_pid[4];
 
 extern ultrasonic_sensor ultrasonic_sys;
 extern base_sys2D rover_pos;
 extern base_sys2D rover_vel;
+
+extern dc_motor motor[4];
+
+extern mecanum mecanum_pos;
+extern mecanum mecanum_vel;
 
 /*数据帧格式：
 头(2字节) + 命令字(1字节) + 数据区(n字节) + 校验字节(1字节) + 尾(2字节)
@@ -43,8 +48,8 @@ void UartInit(void)
 {
     uint8_t head_uart2[2] = {0xfa, 0xaf};
     uint8_t end_uart2[2]  = {0xfb, 0xbf};
-    uint8_t head_uart1[2] = {STEP_MOTOR_ID};
-    uint8_t end_uart1[2]  = {STEP_MOTOR_CHECK};
+    uint8_t head_uart1[1] = {STEP_MOTOR_ID};
+    uint8_t end_uart1[1]  = {STEP_MOTOR_CHECK};
 
     Fifo_Init(&uart2_fifo, 200, 2, 2, head_uart2, end_uart2);
     Fifo_Init(&uart1_fifo, 200, 1, 1, head_uart1, end_uart1);
@@ -97,16 +102,22 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         }
         if(uart3_cnt == 4)
         {
-            if(uart3_buffer[3] == uart3_buffer[0]+uart3_buffer[1]+uart3_buffer[2])
+            if(uart3_buffer[3] == (uint8_t)((0xFF+uart3_buffer[1]+uart3_buffer[2]) & 0xFF))
             {
-                ultrasonic_sys.distance = (float)(uart3_buffer[1]<<8 | uart3_buffer[2]) / 1000.0f;
-                tx_buffer[0]=STEP_MOTOR_ID;
-                tx_buffer[1]=0x36;
-                tx_buffer[2]=STEP_MOTOR_CHECK;
-                HAL_UART_Transmit_IT(ultrasonic_sys.huart_stepmotor, tx_buffer, 3);
-                uart3_flag = 0;
-                uart3_cnt = 0;
-                uart3_ptr = 0;
+				float dis = (float)(uart3_buffer[1]<<8 | uart3_buffer[2]) / 1000.0f;
+				if(dis < 1.0f)
+				{
+					ultrasonic_sys.distance = dis;
+					tx_buffer[0]=STEP_MOTOR_ID;
+					tx_buffer[1]=0x36;
+					tx_buffer[2]=STEP_MOTOR_CHECK;
+					HAL_UART_Transmit_IT(ultrasonic_sys.huart_stepmotor, tx_buffer, 3);
+					uart3_flag = 0;
+					uart3_cnt = 0;
+					uart3_ptr = 0;
+//					ultrasonic_info info;
+//					write_ultrasonic_info(&info);
+				}
             }
         }
         if(uart3_ptr > 63) uart3_ptr = 0;
@@ -141,34 +152,40 @@ void uart2_solve(uint8_t *buf)
 {
   switch(buf[2])
   {
-    case 0x4d: // 运动控制指令
+    case 0x4D: // 运动控制指令
     {
-        if(buf[8] == check_data(buf+2, 6)){
-            control_info control;
-            memcpy(&control, buf + 3, sizeof(control_info));
-            write_control_info(&control);}
+        control_info control;
+        memcpy(&control, buf + 3, sizeof(control_info));
+        write_control_info(&control);
         break;
     }
-    case 0x43: // 柔顺控制器信息
+    case 0x4E: // 导航信息
     {
-        compliance_info compliance;
-        if(buf[3] == 1 && buf[4] == check_data(buf+2, 2)){
-            read_compliance_info(&compliance);}
-        if(buf[3] == 0 && buf[16] == check_data(buf+2, sizeof(compliance_info)+1)){
-        memcpy(&compliance, buf + 3, sizeof(compliance_info));
-        write_compliance_info(&compliance);}
+        navigation_info navigation;
+        if(buf[3] == 0x01){
+            read_navigation_info(&navigation);}
+        if(buf[3] == 0x00){
+        memcpy(&navigation, buf + 3, sizeof(navigation_info));
+        write_navigation_info(&navigation);}
       break;
     }
     case 0x50: // PID控制器信息
     {
         pid_info pid;
-        if(buf[3] == 1 && buf[5] == check_data(buf+2, 3))
+        if(buf[3] == 0x01)
             read_pid_info(&pid, buf[4]);
-        if(buf[3] == 0 && buf[37] == check_data(buf+2, sizeof(pid_info)+1)){
+        if(buf[3] == 0x00){
             memcpy(&pid, buf + 3, sizeof(pid_info));
             write_pid_info(&pid);}
       break;
     }
+    // case 0x55: // 超声波信息
+    // {
+    //     ultrasonic_info ultrasonic;
+    //     if(buf[3] == 1 && buf[5] == check_data(buf+2, 3))
+    //         write_ultrasonic_info(&ultrasonic);
+    //   break;
+    // }
     default:
       break;
   }
@@ -181,7 +198,7 @@ void uart1_solve(uint8_t *buf)
         uint32_t angle;
         memcpy(&angle, buf + 3, sizeof(uint32_t));
         ultrasonic_sys.angle = -(buf[2]*2-1) * (angle * 2 * PI) / 65536.0f;
-        ultrasonic_sys.angle = angle_correct_rad(ultrasonic_sys.angle);
+        ultrasonic_sys.angle = angle_correct_rad(ultrasonic_sys.angle-ANGLE_DIFF);
         ultrasonic_info ultrasonic_buffer;
         write_ultrasonic_info(&ultrasonic_buffer);
     }
@@ -189,25 +206,30 @@ void uart1_solve(uint8_t *buf)
 
 void write_control_info(control_info *p_control)
 {
-    if(control_flag != p_control->mode)
-        control_flag = p_control->mode;
-    else control_flag = 0xFF; // 不切换模式
+    if(control_state != p_control->mode && p_control->mode != 0xFF)
+        control_state = p_control->mode;
     control_value = p_control->value;
 }
 
-void write_navigation_info(navigation_info *p_navigation);
+void write_navigation_info(navigation_info *p_navigation)
 {
     rover_pos.vector = p_navigation->position;
     vector2matrix(&rover_pos);
+
+    mecanum_inverse_kinematics(&mecanum_pos, p_navigation->position);
+    for(uint8_t i = 0; i < 4; i++)
+    {
+        motor[i].real_position = mecanum_pos.wheels[i];
+    }
 }
 
-void read_navigation_info(navigation_info *p_navigation);
+void read_navigation_info(navigation_info *p_navigation)
 {
     p_navigation->rw_flag = 1;
     p_navigation->position = rover_pos.vector;
     p_navigation->velocity = rover_vel.vector;
     memcpy(tx_buffer, uart2_fifo.head, 2);
-    tx_buffer[2] = 0x43;
+    tx_buffer[2] = 0x4E;
     memcpy(tx_buffer + 3, p_navigation, sizeof(navigation_info));
     tx_buffer[3 + sizeof(navigation_info)] = check_data(tx_buffer + 2, sizeof(navigation_info) + 1);
     memcpy(tx_buffer + 4 + sizeof(navigation_info), uart2_fifo.end, 2);
@@ -216,21 +238,27 @@ void read_navigation_info(navigation_info *p_navigation);
 
 void write_pid_info(pid_info *p_pid)
 {
-    if(p_pid->control_id == 0x01) // 力闭环
+    if(p_pid->control_id == 0x01) // 位置环
     {
-        force_pid.kp = p_pid->kp;
-        force_pid.ki = p_pid->ki;
-        force_pid.kd = p_pid->kd;
-        force_pid.i_limit = p_pid->i_limit;
-        force_pid.o_limit = p_pid->o_limit;
+        for(uint8_t i = 0; i < 4; i++)
+        {
+            pos_pid[i].kp = p_pid->kp;
+            pos_pid[i].ki = p_pid->ki;
+            pos_pid[i].kd = p_pid->kd;
+            pos_pid[i].i_limit = p_pid->i_limit;
+            pos_pid[i].o_limit = p_pid->o_limit;
+        }
     }
-    else if(p_pid->control_id == 0x00) // 位置闭环
+    else if(p_pid->control_id == 0x00) // 速度环
     {
-        position_pid.kp = p_pid->kp;
-        position_pid.ki = p_pid->ki;
-        position_pid.kd = p_pid->kd;
-        position_pid.i_limit = p_pid->i_limit;
-        position_pid.o_limit = p_pid->o_limit;
+        for(uint8_t i = 0; i < 4; i++)
+        {
+            vel_pid[i].kp = p_pid->kp;
+            vel_pid[i].ki = p_pid->ki;
+            vel_pid[i].kd = p_pid->kd;
+            vel_pid[i].i_limit = p_pid->i_limit;
+            vel_pid[i].o_limit = p_pid->o_limit;
+        }
     }
 }
 
@@ -238,34 +266,34 @@ void read_pid_info(pid_info *p_pid, uint8_t control_id)
 {
     p_pid->rw_flag = 1;
     p_pid->control_id = control_id;
-    if(p_pid->control_id == 0x01) // 力闭环
+    if(p_pid->control_id == 0x01) // 位置环
     {
-        p_pid->delta = force_pid.delta;
-        p_pid->delta_i = force_pid.delta_i;
-        p_pid->delta_d = force_pid.delta_d;
-        p_pid->kp = force_pid.kp;
-        p_pid->ki = force_pid.ki;
-        p_pid->kd = force_pid.kd;
-        p_pid->i_limit = force_pid.i_limit;
-        p_pid->o_limit = force_pid.o_limit;
+        p_pid->delta = pos_pid[0].delta_i;
+        p_pid->delta_i = pos_pid[0].delta_i;
+        p_pid->delta_d = pos_pid[0].delta_d;
+        p_pid->kp = pos_pid[0].kp;
+        p_pid->ki = pos_pid[0].ki;
+        p_pid->kd = pos_pid[0].kd;
+        p_pid->i_limit = pos_pid[0].i_limit;
+        p_pid->o_limit = pos_pid[0].o_limit;
     }
-    else if(p_pid->control_id == 0x00) // 位置闭环
+    else if(p_pid->control_id == 0x00) // 速度环
     {
-        p_pid->delta = position_pid.delta;
-        p_pid->delta_i = position_pid.delta_i;
-        p_pid->delta_d = position_pid.delta_d;
-        p_pid->kp = position_pid.kp;
-        p_pid->ki = position_pid.ki;
-        p_pid->kd = position_pid.kd;
-        p_pid->i_limit = position_pid.i_limit;
-        p_pid->o_limit = position_pid.o_limit;
+        p_pid->delta = vel_pid[0].delta_i;
+        p_pid->delta_i = vel_pid[0].delta_i;
+        p_pid->delta_d = vel_pid[0].delta_d;
+        p_pid->kp = vel_pid[0].kp;
+        p_pid->ki = vel_pid[0].ki;
+        p_pid->kd = vel_pid[0].kd;
+        p_pid->i_limit = vel_pid[0].i_limit;
+        p_pid->o_limit = vel_pid[0].o_limit;
     }
-    memcpy(tx_buffer, uart1_fifo.head, 2);
+    memcpy(tx_buffer, uart2_fifo.head, 2);
     tx_buffer[2] = 0x50;
     memcpy(tx_buffer + 3, p_pid, sizeof(pid_info));
     tx_buffer[3 + sizeof(pid_info)] = check_data(tx_buffer + 2, sizeof(pid_info) + 1);
-    memcpy(tx_buffer + 4 + sizeof(pid_info), uart1_fifo.end, 2);
-    HAL_UART_Transmit_IT(&huart1, tx_buffer, 6 + sizeof(pid_info));
+    memcpy(tx_buffer + 4 + sizeof(pid_info), uart2_fifo.end, 2);
+    HAL_UART_Transmit_IT(&huart2, tx_buffer, 6 + sizeof(pid_info));
 }
 
 void write_ultrasonic_info(ultrasonic_info *p_ultrasonic)

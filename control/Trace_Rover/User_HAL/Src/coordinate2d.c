@@ -131,3 +131,34 @@ void base2world(base_sys2D *base, base_sys2D *input, base_sys2D *output) {
     output->vector.r = angle_correct_rad(base->vector.r + r);
     vector2matrix(output);
 }
+
+/**
+ * @brief 世界坐标转换为机器人底盘坐标
+ * 
+ * @param base 机器人底盘信息
+ * @param input 世界坐标系下的输入坐标
+ * @param output 转换后的机器人底盘坐标系下的输出坐标
+ */
+void world2base(base_sys2D *base, base_sys2D *input, base_sys2D *output) {
+    float x = input->vector.x - base->vector.x;
+    float y = input->vector.y - base->vector.y;
+    float r = input->vector.r;
+
+    float cos_r = cosf(base->vector.r);
+    float sin_r = sinf(base->vector.r);
+
+    output->vector.x = cos_r * x + sin_r * y;
+    output->vector.y = -sin_r * x + cos_r * y;
+    output->vector.r = angle_correct_rad(r - base->vector.r);
+    vector2matrix(output);
+}
+
+
+/*__||_____||__
+  __||_____||__
+  ___\\___//___
+  _===========_
+  _____|||_____
+  _____|||_____
+  ______|______
+  ___防伪专用___*/

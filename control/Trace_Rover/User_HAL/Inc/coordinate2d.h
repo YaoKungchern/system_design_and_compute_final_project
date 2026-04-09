@@ -42,6 +42,8 @@ void matrix2vector(base_sys2D *sys);
 void base_sys_set_by_vector(base_sys2D *sys, float x, float y, float r);
 void base_sys_set_by_matrix(base_sys2D *sys, float h_matrix[3][3]);
 void base2world(base_sys2D *base, base_sys2D *input, base_sys2D *output);
+void world2base(base_sys2D *base, base_sys2D *input, base_sys2D *output);
+
 
 #pragma pack(pop)
 

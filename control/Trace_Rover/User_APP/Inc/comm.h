@@ -16,14 +16,25 @@
 #pragma pack(1)
 
 #include "main.h"
+#include "usart.h"
 #include "fifo.h"
 #include "pid.h"
+#include "actuator.h"
 #include "ultrasonic.h"
+#include "mecanum.h"
 #include <string.h>
 
 void UartInit(void);
 void uart2_solve(uint8_t *buf);
 void uart1_solve(uint8_t *buf);
+
+typedef enum {
+    OPEN_LOOP_ROVER_BASE = 0x00,
+    SPEED_LOOP_ROVER_BASE = 0x01,
+    SPEED_LOOP_WORLD_BASE = 0x02,
+    POSITION_LOOP_ROVER_BASE = 0x03,
+    POSITION_LOOP_WORLD_BASE = 0x04,
+} ctrl_state;
 
 typedef struct
 {

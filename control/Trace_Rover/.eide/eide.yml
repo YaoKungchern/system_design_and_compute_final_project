@@ -256,7 +256,7 @@ targets:
         interface: stlink
         target: stm32h7x
       STLink:
-        address: "0x08000000"
+        address: "0x80000000"
         bin: ""
         elFile: None
         optionBytes: .eide/trace_rover.st.option.bytes.ini

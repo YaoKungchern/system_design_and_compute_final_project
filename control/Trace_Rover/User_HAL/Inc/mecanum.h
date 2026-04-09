@@ -15,9 +15,9 @@
 #pragma pack(push)
 #pragma pack(1)
 
-#define WHEEL_RADIUS 0.05f // 轮子半径，单位为米
-#define CHASSIS_LENGTH 0.3f  // 机器人长度，单位为米
-#define CHASSIS_WIDTH 0.2f   // 机器人宽度，单位为米
+#define WHEEL_RADIUS 0.034f // 轮子半径，单位为米
+#define CHASSIS_LENGTH 0.07325f  // 机器人长度，单位为米
+#define CHASSIS_WIDTH 0.10255f   // 机器人宽度，单位为米
 
 #include "coordinate2D.h"
 

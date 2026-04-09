@@ -18,9 +18,9 @@
 #include "main.h"
 #include "pid.h"
 
-#define ENCODER_PPR 2048.0f ///< 编码器每转脉冲数
+#define ENCODER_PPR 1560.0f ///< 编码器每转脉冲数
 #define ENCODER_GEAR_RATIO 1.0f ///< 编码器齿轮比
-#define TIRE_RADIUS 0.05f ///< 轮子半径
+#define TIRE_RADIUS 0.034f ///< 轮子半径
 
 #define MOTOR_PWM_MAX 1000 // 最大PWM占空比
 #define SERVO_PWM_MAX 20000 // 180度舵机最大PWM占空比
@@ -28,9 +28,9 @@
 
 
 typedef enum {
-    OPEN_LOOP = 0,
-    SPEED_LOOP,
-    POSITION_LOOP,
+    OPEN_LOOP = 0x00,
+    SPEED_LOOP = 0x01,
+    POSITION_LOOP = 0x02,
 } dc_motor_state;
 
 typedef struct {

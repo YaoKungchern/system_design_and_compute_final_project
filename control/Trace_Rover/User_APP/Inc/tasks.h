@@ -16,19 +16,16 @@
 #pragma pack(1)
 
 #include "time_slice.h"
-#include "user_sensor.h"
-#include "user_control.h"
-#include "user_actuator.h"
-#include "led.h"
 #include "main.h"
+#include "tim.h"
+#include "comm.h"
+#include "actuator.h"
+#include "ultrasonic.h"
 
-void sensor_cb(void);
-void f_pid_cb(void);
-void p_pid_cb(void);
-void impedance_cb(void);
-void admittance_cb(void);
-void actuator_cb(void);
-void led_cb(void);
+void motor_cb(void);
+void nav_cb(void);
+void tasks_init(void);
+void tasks_run(void);
 
 #pragma pack(pop)
 
