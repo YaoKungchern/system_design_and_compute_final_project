@@ -33,6 +33,11 @@ typedef enum {
     POSITION_LOOP = 0x02,
 } dc_motor_state;
 
+typedef enum {
+    CW = 0x00,
+    CCW = 0x01,
+} dc_motor_dir;
+
 typedef struct {
     TIM_HandleTypeDef *htim; ///< 定时器句柄
     uint32_t channel;        ///< 定时器通道
@@ -45,6 +50,7 @@ typedef struct {
     GPIO_TypeDef *gpio_port_2; ///< GPIO端口2
     uint16_t gpio_pin_2;       ///< GPIO引脚2
 
+    dc_motor_dir dir;         ///< 转动方向
 
     float real_speed;           ///< 当前速度
     float target_speed;         ///< 目标速度
@@ -67,7 +73,7 @@ typedef struct {
 
 void motor_init(dc_motor *motor, TIM_HandleTypeDef *htim, uint32_t channel, 
     TIM_HandleTypeDef *enc_htim, GPIO_TypeDef *gpio_port_1, uint16_t gpio_pin_1, 
-    GPIO_TypeDef *gpio_port_2, uint16_t gpio_pin_2,
+    GPIO_TypeDef *gpio_port_2, uint16_t gpio_pin_2, dc_motor_dir, 
     pid *v_pid, pid *p_pid);
 
 void motor_set_state(dc_motor *motor, dc_motor_state state);    

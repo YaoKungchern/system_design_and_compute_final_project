@@ -83,8 +83,8 @@ void motor_cb(void)
         {
             motor_set_state(&motor[i], state);
         }
+        motor_state = state;
 	}
-	motor_state = state;
     mecanum_inverse_kinematics(&mecanum_ctrl, value);
     for(uint8_t i = 0; i < 4; i++)
     {
@@ -128,16 +128,17 @@ void tasks_init(void)
 
     ultrasonic_init(&ultrasonic_sys, &huart3, &huart1, 50);
     servo_180_init(&servo_cam, &htim15, TIM_CHANNEL_1);
+    servo_180_set_angle(&servo_cam, 90.0f);
 
     for(uint8_t i = 0; i < 4; i++)
     {
         pid_init(&vel_pid[i], 0.5f, 0.0f, 0.0f, 0.3f, 1.0f);
         pid_init(&pos_pid[i], 0.5f, 0.0f, 0.0f, 0.6f, 2.0f);
     }
-    motor_init(&motor[0], &htim4, TIM_CHANNEL_1, &htim2, GPIOD, GPIO_PIN_10, GPIOD, GPIO_PIN_8, &vel_pid[0], &pos_pid[0]);
-    motor_init(&motor[1], &htim4, TIM_CHANNEL_4, &htim8, GPIOD, GPIO_PIN_3, GPIOD, GPIO_PIN_1, &vel_pid[1], &pos_pid[1]);
-    motor_init(&motor[2], &htim4, TIM_CHANNEL_3, &htim1, GPIOD, GPIO_PIN_2, GPIOD, GPIO_PIN_0, &vel_pid[2], &pos_pid[2]);
-    motor_init(&motor[3], &htim4, TIM_CHANNEL_2, &htim3, GPIOD, GPIO_PIN_11, GPIOD, GPIO_PIN_9, &vel_pid[3], &pos_pid[3]);
+    motor_init(&motor[0], &htim4, TIM_CHANNEL_1, &htim2, GPIOD, GPIO_PIN_8, GPIOD, GPIO_PIN_10, CCW, &vel_pid[0], &pos_pid[0]);
+    motor_init(&motor[1], &htim4, TIM_CHANNEL_4, &htim8, GPIOD, GPIO_PIN_1, GPIOD, GPIO_PIN_3, CW, &vel_pid[1], &pos_pid[1]);
+    motor_init(&motor[2], &htim4, TIM_CHANNEL_3, &htim1, GPIOD, GPIO_PIN_0, GPIOD, GPIO_PIN_2, CW, &vel_pid[2], &pos_pid[2]);
+    motor_init(&motor[3], &htim4, TIM_CHANNEL_2, &htim3, GPIOD, GPIO_PIN_9, GPIOD, GPIO_PIN_11, CCW, &vel_pid[3], &pos_pid[3]);
 
     time_slice_init(&motor_task, 5, motor_cb);
     time_slice_init(&nav_task, 5, nav_cb);

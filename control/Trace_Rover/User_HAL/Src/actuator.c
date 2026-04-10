@@ -27,16 +27,25 @@
  */
 void motor_init(dc_motor *motor, TIM_HandleTypeDef *htim, uint32_t channel, 
     TIM_HandleTypeDef *enc_htim, GPIO_TypeDef *gpio_port_1, uint16_t gpio_pin_1, 
-    GPIO_TypeDef *gpio_port_2, uint16_t gpio_pin_2,
+    GPIO_TypeDef *gpio_port_2, uint16_t gpio_pin_2, dc_motor_dir dir,
     pid *v_pid, pid *p_pid) {
     
     motor->htim = htim;
     motor->channel = channel;
     motor->enc_htim = enc_htim;
-    motor->gpio_port_1 = gpio_port_1;
-    motor->gpio_pin_1 = gpio_pin_1;
-    motor->gpio_port_2 = gpio_port_2;
-    motor->gpio_pin_2 = gpio_pin_2;
+    motor->dir = dir;
+    if(dir == CW) {
+        motor->gpio_port_1 = gpio_port_1;
+        motor->gpio_pin_1 = gpio_pin_1;
+        motor->gpio_port_2 = gpio_port_2;
+        motor->gpio_pin_2 = gpio_pin_2;
+    } else {
+        motor->gpio_port_1 = gpio_port_2;
+        motor->gpio_pin_1 = gpio_pin_2;
+        motor->gpio_port_2 = gpio_port_1;
+        motor->gpio_pin_2 = gpio_pin_1;
+    }
+    
     motor->v_pid = *v_pid;
     motor->p_pid = *p_pid;
 
@@ -94,7 +103,12 @@ void motor_update(dc_motor *motor, float input) {
     __HAL_TIM_SET_COUNTER(motor->enc_htim, 0); // 重置编码器计数
 
     // 计算当前速度和位置
-    motor->real_position -= delta_position;
+    if(motor->dir == CW) {
+        motor->real_position += delta_position;
+    } else {
+        motor->real_position -= delta_position;
+    }
+    
     uint32_t current_time = HAL_GetTick();
     motor->real_speed = delta_position / ((current_time - motor->last_time) / 1000.0f);
     motor->last_time = current_time;

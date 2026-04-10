@@ -33,6 +33,8 @@ extern base_sys2D rover_vel;
 
 extern dc_motor motor[4];
 
+extern servo_180 servo_cam;
+
 extern mecanum mecanum_pos;
 extern mecanum mecanum_vel;
 
@@ -178,6 +180,12 @@ void uart2_solve(uint8_t *buf)
             memcpy(&pid, buf + 3, sizeof(pid_info));
             write_pid_info(&pid);}
       break;
+    }
+    case 0x53: // 舵机信息
+    {
+        float angle;
+        memcpy(&angle, buf + 3, sizeof(float));
+        servo_180_set_angle(&servo_cam, angle);
     }
     // case 0x55: // 超声波信息
     // {

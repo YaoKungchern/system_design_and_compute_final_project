@@ -24,6 +24,7 @@ CMD_PID = 0x50  # PID参数设置
 CMD_NAV = 0x4E   #导航指令
 CMD_CONTROL = 0x4D  # 运动控制指令
 CMD_ULTRASONIC = 0x55  # 超声波指令指令
+CMD_SERVO = 0x53 # 舵机控制指令
 
 @dataclass
 class RobotState:   # pid_info + compliance_info + control_info
@@ -61,6 +62,9 @@ class RobotState:   # pid_info + compliance_info + control_info
     angle: float = 0.0  # 超声波角度
     x: float = 0.0  # 超声波世界坐标系X轴坐标
     y: float = 0.0  # 超声波世界坐标系Y轴坐标
+    
+    # --- 舵机信息 (0x53) ---
+    servo_angle: float = 0.0  # 舵机角度
 
 class trace_rover:
     # def __init__(self, port: str, baudrate=115200)->None:
@@ -233,6 +237,15 @@ class trace_rover:
         fmt = '<Bfff'
         data = struct.pack(fmt, mode, value[0], value[1], value[2])
         self._send_frame(CMD_CONTROL, data)
+        
+    def write_servo(self, angle: float)->None:
+        """
+        发送舵机控制指令
+        4字节
+        """
+        fmt = '<f'
+        data = struct.pack(fmt, angle)
+        self._send_frame(CMD_SERVO, data)
 
     # ==========================================================
     #  接收线程
@@ -392,7 +405,7 @@ if __name__ == "__main__":
         robot.read_pid(controller_id=0x00)
         
         time.sleep(1.0)
-        # robot.write_control(mode=0x01, value=[0.0, 0.0, 1.0])
+        robot.write_control(mode=0x01, value=[0.0, 0.0, 0.1])
 
         # 4. 模拟主循环，观察数据更新
         # 实际项目中，这里可能是 GUI 的 update 循环
@@ -401,12 +414,10 @@ if __name__ == "__main__":
             time.sleep(0.5)
             # 获取最新的状态副本
             state = robot.get_state()
-            robot.read_pid(controller_id=0x00)  # 不断请求 PID 状态，看看参数有没有更新
-            print(f"当前状态 kp: {state.kp:.2f}")
             
-            # robot.read_nav()
-            # print(f"当前状态 pos: {state.pos[0], state.pos[1], state.pos[2]}") # 解开注释可查看
-            # print(f"当前状态 speed: {state.vel[0], state.vel[1], state.vel[2]}") # 解开注释可查看
+            robot.read_nav()
+            print(f"当前状态 pos: {state.pos[0], state.pos[1], state.pos[2]}") # 解开注释可查看
+            print(f"当前状态 speed: {state.vel[0], state.vel[1], state.vel[2]}") # 解开注释可查看
 
         # 5. 测试结束，关闭资源
         robot.close()
