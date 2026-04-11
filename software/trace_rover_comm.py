@@ -409,11 +409,11 @@ if __name__ == "__main__":
         #     robot.read_pid(controller_id=0x00)
         
         # time.sleep(1.0)
-        # for i in range(5):
-        #     time.sleep(0.5)
+        for i in range(5):
+            time.sleep(0.5)
         #     robot.write_control(mode=0x01, value=[0.0, 0.0, 2.0])
-        #     robot.write_control(mode=0x02, value=[0.0, 0.25, 5])
-            # robot.write_control(mode=0x04, value=[0.8, 0.8, 0.0])
+            # robot.write_control(mode=0x02, value=[0.0, 0.25, 5.0])
+            robot.write_control(mode=0x04, value=[0.5, 0.5, 1.57])
             
         # time.sleep(5.0)
         # for i in range(5):
@@ -429,14 +429,14 @@ if __name__ == "__main__":
             state = robot.get_state()
             
             robot.read_nav()
-            time.sleep(0.5)
-            for i in range(5):
-                robot.write_control(mode= 0x04, value=[0.0, 0.0, 1.5])
-                time.sleep(0.5)
-            time.sleep(1.0)
-            for i in range(5):
-                robot.write_control(mode= 0x04, value=[0.0, 0.0, 0.0])
-                time.sleep(0.5)
+            # time.sleep(0.5)
+            # for i in range(5):
+            #     robot.write_control(mode= 0x04, value=[0.0, 0.0, 1.5])
+            #     time.sleep(0.5)
+            # time.sleep(1.0)
+            # for i in range(5):
+            #     robot.write_control(mode= 0x04, value=[0.0, 0.0, 0.0])
+            #     time.sleep(0.5)
                 
                 
                 

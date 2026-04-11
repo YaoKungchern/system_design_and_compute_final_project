@@ -139,14 +139,20 @@ void motor_update(dc_motor *motor, float input) {
         // 串级控制
         // 外环：位置环
         motor->target_position = input;
-        float position_error = motor->target_position - motor->real_position;
+        float position_error = motor->target_position;
+        if (fabs(position_error) < 0.025f) {
+        position_error = 0.0f;
+        }
         pid_refresh(&motor->p_pid, position_error);
         // 内环：速度环
         motor->target_speed = motor->p_pid.output;
         float speed_error = motor->target_speed - motor->real_speed;
+        if (fabs(speed_error) < 0.025f) {
+        speed_error = 0.0f;
+        }
         pid_refresh(&motor->v_pid, speed_error);
         output = motor->v_pid.output;
-        if(fabs(output - motor->last_output) > 0.02f)
+        if(fabs(output - motor->last_output) > 0.05f)
         {
             motor_output(motor, output);
             motor->last_output = output;
