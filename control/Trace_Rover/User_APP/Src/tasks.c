@@ -63,14 +63,28 @@ void motor_cb(void)
     }
     case POSITION_LOOP_ROVER_BASE:{
         base_sys2D input, output;
+        // 计算最小角度差，确保走最短路径
         base_sys_set_by_vector(&input, control_value.x, control_value.y, control_value.r);
         base2world(&rover_pos, &input, &output);
         value = output.vector;
+        float target_r = output.vector.r;
+        float current_r = mecanum_pos.chassis.r;
+        float angle_diff = target_r - current_r;
+        angle_diff = angle_correct_rad(angle_diff);
+        float corrected_r = current_r + angle_diff;
+        value.r = corrected_r;
         state = POSITION_LOOP;
         break;
     }
     case POSITION_LOOP_WORLD_BASE:{
+        // 计算最小角度差，确保走最短路径
+        float target_r = control_value.r;
+        float current_r = mecanum_pos.chassis.r;
+        float angle_diff = target_r - current_r;
+        angle_diff = angle_correct_rad(angle_diff);
+        float corrected_r = current_r + angle_diff;
         value = control_value;
+        value.r = corrected_r;
         state = POSITION_LOOP;
         break;
     }
@@ -99,8 +113,8 @@ void nav_cb(void)
         mecanum_pos.wheels[i] = motor[i].real_position;
     }
     mecanum_forward_kinematics(&mecanum_pos, mecanum_pos.wheels);
-	mecanum_pos.chassis.r=angle_correct_rad(mecanum_pos.chassis.r);
     rover_pos.vector = mecanum_pos.chassis;
+	rover_pos.vector.r=angle_correct_rad(mecanum_pos.chassis.r);
     vector2matrix(&rover_pos);
     
     for(uint8_t i = 0; i < 4; i++)
@@ -132,8 +146,8 @@ void tasks_init(void)
 
     for(uint8_t i = 0; i < 4; i++)
     {
-        pid_init(&vel_pid[i], 0.5f, 0.0f, 0.0f, 0.3f, 1.0f);
-        pid_init(&pos_pid[i], 0.5f, 0.0f, 0.0f, 0.6f, 2.0f);
+        pid_init(&vel_pid[i], 5.0f, 0.5f, 0.05f, 0.3f, 1.0f);
+        pid_init(&pos_pid[i], 2.0f, 0.02f, 0.2f, 0.4f, 1.2f);
     }
     motor_init(&motor[0], &htim4, TIM_CHANNEL_1, &htim2, GPIOD, GPIO_PIN_8, GPIOD, GPIO_PIN_10, CCW, &vel_pid[0], &pos_pid[0]);
     motor_init(&motor[1], &htim4, TIM_CHANNEL_4, &htim8, GPIOD, GPIO_PIN_1, GPIOD, GPIO_PIN_3, CW, &vel_pid[1], &pos_pid[1]);

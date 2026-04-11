@@ -373,7 +373,7 @@ class trace_rover:
                 self.state.nav_mode = data[0]
                 self.state.pos = [data[1], data[2], data[3]]
                 self.state.vel = [data[4], data[5], data[6]]
-                # print(f"收到反馈 Nav: Pos={self.state.pos}, Vel={self.state.vel}")
+                print(f"收到反馈 Nav: Pos={self.state.pos}, Vel={self.state.vel}")
 
             elif cmd_id == CMD_CONTROL:
                 self.state.control_mode = data[0]
@@ -396,28 +396,54 @@ if __name__ == "__main__":
 
         # 2. 发送一个写指令：设置 PID 的 Kp=1.0
         print(">>> 正在发送 PID 写入指令 (Kp=1.0)...")
-        robot.write_pid(controller_id=0x00, kp=1.0, ki=0.0, kd=0.0, i_limit=0.3, o_limit=1.0)
+        # for i in range(5):
+        #     time.sleep(0.5)
+        #     robot.write_pid(controller_id=0x00, kp=10.0, ki=1.0, kd=0.0, i_limit=0.3, o_limit=1.0)
 
         # 3. 发送一个读请求：问下位机“你现在的参数是多少？”
         # 稍微延时一下，防止指令太快下位机处理不过来
-        time.sleep(0.1)
-        print(">>> 正在发送 PID 读取请求...")
-        robot.read_pid(controller_id=0x00)
+        # time.sleep(0.1)
+        # print(">>> 正在发送 PID 读取请求...")
+        # for i in range(5):
+        #     time.sleep(0.5)
+        #     robot.read_pid(controller_id=0x00)
         
-        time.sleep(1.0)
-        robot.write_control(mode=0x01, value=[0.0, 0.0, 0.1])
+        # time.sleep(1.0)
+        # for i in range(5):
+        #     time.sleep(0.5)
+        #     robot.write_control(mode=0x01, value=[0.0, 0.0, 2.0])
+        #     robot.write_control(mode=0x02, value=[0.0, 0.25, 5])
+            # robot.write_control(mode=0x04, value=[0.8, 0.8, 0.0])
+            
+        # time.sleep(5.0)
+        # for i in range(5):
+        #     time.sleep(0.5)
+        #     robot.write_control(mode=0x04, value=[0.0, 0.0, 0.0])
 
         # 4. 模拟主循环，观察数据更新
         # 实际项目中，这里可能是 GUI 的 update 循环
-        print(">>> 等待接收数据回传...")
+        # print(">>> 等待接收数据回传...")
         for i in range(100):
             time.sleep(0.5)
             # 获取最新的状态副本
             state = robot.get_state()
             
             robot.read_nav()
-            print(f"当前状态 pos: {state.pos[0], state.pos[1], state.pos[2]}") # 解开注释可查看
-            print(f"当前状态 speed: {state.vel[0], state.vel[1], state.vel[2]}") # 解开注释可查看
+            time.sleep(0.5)
+            for i in range(5):
+                robot.write_control(mode= 0x04, value=[0.0, 0.0, 1.5])
+                time.sleep(0.5)
+            time.sleep(1.0)
+            for i in range(5):
+                robot.write_control(mode= 0x04, value=[0.0, 0.0, 0.0])
+                time.sleep(0.5)
+                
+                
+                
+                
+            # robot.write_control(mode=0x00, value=[0.0, 0.0, 0.0])
+            # print(f"当前状态 pos: {state.pos[0], state.pos[1], state.pos[2]}") # 解开注释可查看
+            # print(f"当前状态 speed: {state.vel[0], state.vel[1], state.vel[2]}") # 解开注释可查看
 
         # 5. 测试结束，关闭资源
         robot.close()

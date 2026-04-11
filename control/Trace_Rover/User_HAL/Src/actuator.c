@@ -35,15 +35,15 @@ void motor_init(dc_motor *motor, TIM_HandleTypeDef *htim, uint32_t channel,
     motor->enc_htim = enc_htim;
     motor->dir = dir;
     if(dir == CW) {
-        motor->gpio_port_1 = gpio_port_1;
-        motor->gpio_pin_1 = gpio_pin_1;
-        motor->gpio_port_2 = gpio_port_2;
-        motor->gpio_pin_2 = gpio_pin_2;
-    } else {
         motor->gpio_port_1 = gpio_port_2;
         motor->gpio_pin_1 = gpio_pin_2;
         motor->gpio_port_2 = gpio_port_1;
         motor->gpio_pin_2 = gpio_pin_1;
+    } else {
+        motor->gpio_port_1 = gpio_port_1;
+        motor->gpio_pin_1 = gpio_pin_1;
+        motor->gpio_port_2 = gpio_port_2;
+        motor->gpio_pin_2 = gpio_pin_2;
     }
     
     motor->v_pid = *v_pid;
@@ -110,8 +110,13 @@ void motor_update(dc_motor *motor, float input) {
     }
     
     uint32_t current_time = HAL_GetTick();
-    motor->real_speed = delta_position / ((current_time - motor->last_time) / 1000.0f);
+    if(motor->dir == CW) {
+        motor->real_speed = delta_position / ((current_time - motor->last_time) / 1000.0f);
+    } else {
+        motor->real_speed = -delta_position / ((current_time - motor->last_time) / 1000.0f);
+    }
     motor->last_time = current_time;
+    float output;
 
     switch (motor->state)
     {
@@ -123,7 +128,12 @@ void motor_update(dc_motor *motor, float input) {
         // 速度环控制
         motor->target_speed = input;
         pid_refresh(&motor->v_pid, motor->target_speed - motor->real_speed);
-        motor_output(motor, motor->v_pid.output);
+        output = motor->v_pid.output;
+        if(fabs(output - motor->last_output) > 0.02f)
+        {
+            motor_output(motor, output);
+            motor->last_output = output;
+        }
         break;
     case POSITION_LOOP:
         // 串级控制
@@ -135,7 +145,12 @@ void motor_update(dc_motor *motor, float input) {
         motor->target_speed = motor->p_pid.output;
         float speed_error = motor->target_speed - motor->real_speed;
         pid_refresh(&motor->v_pid, speed_error);
-        motor_output(motor, motor->v_pid.output);
+        output = motor->v_pid.output;
+        if(fabs(output - motor->last_output) > 0.02f)
+        {
+            motor_output(motor, output);
+            motor->last_output = output;
+        }
         break;
     
     default:

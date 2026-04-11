@@ -3,7 +3,7 @@
 <title>Static Call Graph - [Trace_Rover\Trace_Rover.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image Trace_Rover\Trace_Rover.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Fri Apr 10 15:01:51 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Sat Apr 11 13:41:58 2026
 <BR><P>
 <H3>Maximum Stack Usage =        376 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1573,6 +1573,7 @@ Global Symbols
 </UL>
 <P><STRONG><a name="[e9]"></a>angle_correct_rad</STRONG> (Thumb, 172 bytes, Stack size 0 bytes, coordinate2d.o(.text.angle_correct_rad))
 <BR><BR>[Called By]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nav_cb
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_cb
 <LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_RxCpltCallback
 </UL>
 
@@ -1619,16 +1620,16 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_entry_main
 </UL>
 
-<P><STRONG><a name="[11a]"></a>mecanum_forward_kinematics</STRONG> (Thumb, 164 bytes, Stack size 0 bytes, mecanum.o(.text.mecanum_forward_kinematics))
+<P><STRONG><a name="[11a]"></a>mecanum_forward_kinematics</STRONG> (Thumb, 144 bytes, Stack size 0 bytes, mecanum.o(.text.mecanum_forward_kinematics))
 <BR><BR>[Called By]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nav_cb
 </UL>
 
-<P><STRONG><a name="[111]"></a>mecanum_inverse_kinematics</STRONG> (Thumb, 116 bytes, Stack size 0 bytes, mecanum.o(.text.mecanum_inverse_kinematics))
+<P><STRONG><a name="[111]"></a>mecanum_inverse_kinematics</STRONG> (Thumb, 92 bytes, Stack size 0 bytes, mecanum.o(.text.mecanum_inverse_kinematics))
 <BR><BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_cb
 <LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_solve
 </UL>
 
-<P><STRONG><a name="[9e]"></a>motor_cb</STRONG> (Thumb, 328 bytes, Stack size 136 bytes, tasks.o(.text.motor_cb))
+<P><STRONG><a name="[9e]"></a>motor_cb</STRONG> (Thumb, 360 bytes, Stack size 136 bytes, tasks.o(.text.motor_cb))
 <BR><BR>[Stack]<UL><LI>Max Depth = 220<LI>Call Chain = motor_cb &rArr; world2base &rArr; __hardfp_sinf &rArr; __mathlib_rredf2
 </UL>
 <BR>[Calls]<UL><LI><a href="#[112]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_update
@@ -1637,6 +1638,7 @@ Global Symbols
 <LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;base2world
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;base_sys_set_by_vector
 <LI><a href="#[111]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;mecanum_inverse_kinematics
+<LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;angle_correct_rad
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> tasks.o(.text.tasks_init)
 </UL>
@@ -1667,8 +1669,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_cb
 </UL>
 
-<P><STRONG><a name="[112]"></a>motor_update</STRONG> (Thumb, 248 bytes, Stack size 32 bytes, actuator.o(.text.motor_update))
-<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = motor_update &rArr; pid_refresh
+<P><STRONG><a name="[112]"></a>motor_update</STRONG> (Thumb, 356 bytes, Stack size 40 bytes, actuator.o(.text.motor_update))
+<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = motor_update &rArr; pid_refresh
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GetTick
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pid_refresh
@@ -1677,8 +1679,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_cb
 </UL>
 
-<P><STRONG><a name="[9f]"></a>nav_cb</STRONG> (Thumb, 152 bytes, Stack size 16 bytes, tasks.o(.text.nav_cb))
-<BR><BR>[Stack]<UL><LI>Max Depth = 68<LI>Call Chain = nav_cb &rArr; vector2matrix &rArr; __hardfp_sinf &rArr; __mathlib_rredf2
+<P><STRONG><a name="[9f]"></a>nav_cb</STRONG> (Thumb, 158 bytes, Stack size 24 bytes, tasks.o(.text.nav_cb))
+<BR><BR>[Stack]<UL><LI>Max Depth = 76<LI>Call Chain = nav_cb &rArr; vector2matrix &rArr; __hardfp_sinf &rArr; __mathlib_rredf2
 </UL>
 <BR>[Calls]<UL><LI><a href="#[11a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;mecanum_forward_kinematics
 <LI><a href="#[11b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vector2matrix
@@ -1730,8 +1732,8 @@ Global Symbols
 <LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_solve
 </UL>
 
-<P><STRONG><a name="[10d]"></a>tasks_init</STRONG> (Thumb, 632 bytes, Stack size 128 bytes, tasks.o(.text.tasks_init))
-<BR><BR>[Stack]<UL><LI>Max Depth = 176<LI>Call Chain = tasks_init &rArr; ultrasonic_init &rArr; HAL_Delay
+<P><STRONG><a name="[10d]"></a>tasks_init</STRONG> (Thumb, 660 bytes, Stack size 144 bytes, tasks.o(.text.tasks_init))
+<BR><BR>[Stack]<UL><LI>Max Depth = 192<LI>Call Chain = tasks_init &rArr; ultrasonic_init &rArr; HAL_Delay
 </UL>
 <BR>[Calls]<UL><LI><a href="#[121]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;time_slice_init
 <LI><a href="#[113]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_init

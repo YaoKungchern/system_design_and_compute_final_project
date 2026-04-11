@@ -18,7 +18,7 @@
 #include "main.h"
 #include "pid.h"
 
-#define ENCODER_PPR 1560.0f ///< 编码器每转脉冲数
+#define ENCODER_PPR 780.0f ///< 编码器每转脉冲数
 #define ENCODER_GEAR_RATIO 1.0f ///< 编码器齿轮比
 #define TIRE_RADIUS 0.034f ///< 轮子半径
 
@@ -63,6 +63,7 @@ typedef struct {
     dc_motor_state state;       ///< 当前状态
 
     uint32_t last_time; ///< 上次更新时间
+    float last_output; ///< 上次输出值
 
 } dc_motor;
 
