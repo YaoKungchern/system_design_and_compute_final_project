@@ -1,0 +1,16 @@
+{
+  "speed loop controller": {
+    "kp": 1.01,
+    "ki": 0.0,
+    "kd": 0.0,
+    "i_limit": 0.0,
+    "o_limit": 0.0
+  },
+  "position loop controller": {
+    "kp": 0.0,
+    "ki": 0.0,
+    "kd": 0.0,
+    "i_limit": 0.0,
+    "o_limit": 0.0
+  }
+}

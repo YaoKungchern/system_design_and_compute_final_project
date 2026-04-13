@@ -1,0 +1,28 @@
+{
+    "files": [
+        "Trace_Rover_GC.pyproject",
+        "Trace_Rover_GC.pyproject.user",
+        "best.pt",
+        "camera_calib_params.npz",
+        "config.py",
+        "control.py",
+        "control_widget.py",
+        "control_widget.ui",
+        "main.py",
+        "main.py",
+        "main_func.py",
+        "main_widget.py",
+        "main_widget.ui",
+        "main_widget.ui",
+        "navigation.py",
+        "pid.py",
+        "pid_widget.py",
+        "pid_widget.ui",
+        "pid_widget.ui",
+        "requirements.txt",
+        "trace_rover_comm.py",
+        "trace_rover_comm.py",
+        "utils.py",
+        "vision.py"
+    ]
+}
