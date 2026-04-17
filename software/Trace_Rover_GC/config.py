@@ -24,7 +24,8 @@ VELOCITY_PLOT_POINTS = 100 # 速度曲线显示点数
 # 视觉识别配置
 CAMERA_INDEX = 0           # USB摄像头索引
 ARUCO_SEND_FREQ = 5        # ArUco位置重置频率(Hz)
-YOLO_MODEL = "best.pt"  # YOLO模型路径
+YOLO_MODEL = "vision/best.pt"  # YOLO模型路径
 ARUCO_DICT = "DICT_6X6_250"# ArUco字典类型
+CALIBRATION_PATH = "vision\\camera_calib_params.npz"  # 摄像头标定文件路径
 
 MAC_ADDRESS = "48:87:2D:82:0C:48"  # 小车MAC地址

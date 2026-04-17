@@ -3,7 +3,7 @@
 <title>Static Call Graph - [Trace_Rover\Trace_Rover.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image Trace_Rover\Trace_Rover.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Sun Apr 12 00:04:46 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Sat Apr 18 02:10:43 2026
 <BR><P>
 <H3>Maximum Stack Usage =        376 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -923,6 +923,7 @@ Global Symbols
 <P><STRONG><a name="[ee]"></a>HAL_GPIO_WritePin</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, stm32h7xx_hal_gpio.o(.text.HAL_GPIO_WritePin))
 <BR><BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_GPIO_Init
 <LI><a href="#[117]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_output
+<LI><a href="#[112]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_update
 </UL>
 
 <P><STRONG><a name="[ba]"></a>HAL_GetTick</STRONG> (Thumb, 12 bytes, Stack size 0 bytes, stm32h7xx_hal.o(.text.HAL_GetTick))
@@ -1631,7 +1632,7 @@ Global Symbols
 <LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_solve
 </UL>
 
-<P><STRONG><a name="[9e]"></a>motor_cb</STRONG> (Thumb, 376 bytes, Stack size 136 bytes, tasks.o(.text.motor_cb))
+<P><STRONG><a name="[9e]"></a>motor_cb</STRONG> (Thumb, 424 bytes, Stack size 136 bytes, tasks.o(.text.motor_cb))
 <BR><BR>[Stack]<UL><LI>Max Depth = 192<LI>Call Chain = motor_cb &rArr; motor_update &rArr; pid_refresh
 </UL>
 <BR>[Calls]<UL><LI><a href="#[10b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_sinf
@@ -1672,10 +1673,11 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_cb
 </UL>
 
-<P><STRONG><a name="[112]"></a>motor_update</STRONG> (Thumb, 396 bytes, Stack size 40 bytes, actuator.o(.text.motor_update))
+<P><STRONG><a name="[112]"></a>motor_update</STRONG> (Thumb, 532 bytes, Stack size 40 bytes, actuator.o(.text.motor_update))
 <BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = motor_update &rArr; pid_refresh
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GetTick
+<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pid_refresh
 <LI><a href="#[117]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_output
 </UL>
@@ -1738,7 +1740,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[10d]"></a>tasks_init</STRONG> (Thumb, 664 bytes, Stack size 144 bytes, tasks.o(.text.tasks_init))
-<BR><BR>[Stack]<UL><LI>Max Depth = 192<LI>Call Chain = tasks_init &rArr; ultrasonic_init &rArr; HAL_Delay
+<BR><BR>[Stack]<UL><LI>Max Depth = 184<LI>Call Chain = tasks_init &rArr; ultrasonic_init &rArr; HAL_Delay
 </UL>
 <BR>[Calls]<UL><LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
 <LI><a href="#[120]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;time_slice_init
@@ -1789,8 +1791,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_RxCpltCallback
 </UL>
 
-<P><STRONG><a name="[11e]"></a>ultrasonic_init</STRONG> (Thumb, 98 bytes, Stack size 32 bytes, ultrasonic.o(.text.ultrasonic_init))
-<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = ultrasonic_init &rArr; HAL_Delay
+<P><STRONG><a name="[11e]"></a>ultrasonic_init</STRONG> (Thumb, 96 bytes, Stack size 24 bytes, ultrasonic.o(.text.ultrasonic_init))
+<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = ultrasonic_init &rArr; HAL_Delay
 </UL>
 <BR>[Calls]<UL><LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
 <LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_Transmit_IT

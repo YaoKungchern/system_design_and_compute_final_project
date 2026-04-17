@@ -70,9 +70,12 @@ void motor_cb(void)
         break;
     }
     case POSITION_LOOP_ROVER_BASE:{
-        base_sys2D input, output;
         // 计算目标位置与当前位置的误差（机器人坐标系）
         value = control_value;
+        control_value.x += rover_pos.vector.x;
+        control_value.y += rover_pos.vector.y;
+        control_value.r += rover_pos.vector.r;
+        control_state = POSITION_LOOP_WORLD_BASE;
         value.r = angle_correct_rad(control_value.r);
         state = POSITION_LOOP;
         break;

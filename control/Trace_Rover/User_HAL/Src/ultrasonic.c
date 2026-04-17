@@ -29,13 +29,15 @@
      ultrasonic->x = 0.0f;
      ultrasonic->y = 0.0f;
 
-     uint8_t init_cmd[6] = {STEP_MOTOR_ID, 0xF3, 0xAB, 0x01, 0x00, STEP_MOTOR_CHECK}; // 初始化命令
-     HAL_UART_Transmit_IT(ultrasonic->huart_stepmotor, init_cmd, 6);
-     HAL_Delay(10); // 等待电机初始化完成
+//     uint8_t init_cmd[6] = {STEP_MOTOR_ID, 0xF3, 0xAB, 0x01, 0x00, STEP_MOTOR_CHECK}; // 初始化命令
+//     HAL_UART_Transmit_IT(ultrasonic->huart_stepmotor, init_cmd, 6);
+     HAL_Delay(1000); // 等待电机初始化完成
      uint8_t speed_h = (rotate_speed >> 8) & 0xFF;
      uint8_t speed_l = rotate_speed & 0xFF;
-     uint8_t start_cmd[7] = {STEP_MOTOR_ID, 0xF6, 0x01, speed_h, speed_l, 0x00, STEP_MOTOR_CHECK}; // 启动命令
-     HAL_UART_Transmit_IT(ultrasonic->huart_stepmotor, start_cmd, 7);
+     uint8_t start_cmd[8] = {STEP_MOTOR_ID, 0xF6, 0x01, speed_h, speed_l,0x00, 0x00, STEP_MOTOR_CHECK}; // 启动命令
+	 HAL_UART_Transmit_IT(ultrasonic->huart_stepmotor, start_cmd, 8);
+	 HAL_Delay(100);
+	 HAL_UART_Transmit_IT(ultrasonic->huart_stepmotor, start_cmd, 8);
  }
 
 /*__||_____||__

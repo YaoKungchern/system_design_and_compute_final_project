@@ -121,27 +121,27 @@ class trace_rover:
         # 停止通知并断开连接
         async def disconnect():
             try:
-                await self.client.stop_notify(UART_CHAR_UUID)
-            except:
-                pass
+                if self.client.is_connected:
+                    await self.client.stop_notify(UART_CHAR_UUID)
+            except Exception as e:
+                print(f"停止通知失败: {e}")
             try:
-                await self.client.disconnect()
-            except:
-                pass
+                if self.client.is_connected:
+                    await self.client.disconnect()
+            except Exception as e:
+                print(f"断开连接失败: {e}")
             # 停止事件循环
-            self.loop.stop()
+            if not self.loop.is_closed():
+                self.loop.stop()
         
+        # 非阻塞执行断开连接操作
         try:
-            asyncio.run_coroutine_threadsafe(disconnect(), self.loop).result()
-        except:
-            pass
+            asyncio.run_coroutine_threadsafe(disconnect(), self.loop)
+        except Exception as e:
+            print(f"执行断开连接操作失败: {e}")
         
-        # 等待线程结束
-        try:
-            self.thread.join(timeout=2.0)
-            self.loop_thread.join(timeout=2.0)
-        except:
-            pass
+        # 不等待线程结束，避免阻塞主线程
+        # 线程会在事件循环停止后自动退出
         
     def get_state(self)->RobotState:
         """ [给UI调用的接口]"""

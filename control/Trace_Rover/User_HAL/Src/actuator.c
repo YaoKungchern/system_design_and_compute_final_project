@@ -117,6 +117,7 @@ void motor_update(dc_motor *motor, float input) {
     }
     motor->last_time = current_time;
     float output;
+	float speed_error;
 
     switch (motor->state)
     {
@@ -127,12 +128,13 @@ void motor_update(dc_motor *motor, float input) {
     case SPEED_LOOP:
         // 速度环控制
         motor->target_speed = input;
-        pid_refresh(&motor->v_pid, motor->target_speed - motor->real_speed);
+        speed_error = motor->target_speed - motor->real_speed;
+        pid_refresh(&motor->v_pid, speed_error);
         output = motor->v_pid.output;
-        if(fabs(output - motor->last_output) > 0.02f)
+            if (fabs(output) < 0.02f)
         {
+            motor->last_output = output = 0.0f;
             motor_output(motor, output);
-            motor->last_output = output;
         }
         break;
     case POSITION_LOOP:
@@ -146,16 +148,13 @@ void motor_update(dc_motor *motor, float input) {
         pid_refresh(&motor->p_pid, position_error);
         // 内环：速度环
         motor->target_speed = motor->p_pid.output;
-        float speed_error = motor->target_speed - motor->real_speed;
-        if (fabs(speed_error) < 0.025f) {
-        speed_error = 0.0f;
-        }
+        speed_error = motor->target_speed - motor->real_speed;
         pid_refresh(&motor->v_pid, speed_error);
         output = motor->v_pid.output;
-        if(fabs(output - motor->last_output) > 0.05f)
+            if (fabs(output) < 0.05f)
         {
+            motor->last_output = output = 0.0f;
             motor_output(motor, output);
-            motor->last_output = output;
         }
         break;
     
