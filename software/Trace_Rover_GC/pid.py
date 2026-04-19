@@ -19,8 +19,8 @@ class NewPidWidget(QWidget):
         self.rover = rover
         # PID控制器ID映射（界面文本→ID）
         self.controller_map = {
-            "Speed Loop": 0,
-            "Position Loop": 1
+            "speed loop controller": 0,
+            "position loop controller": 1
         }
 
         # 初始化控件
@@ -33,9 +33,6 @@ class NewPidWidget(QWidget):
         self.ui.pid_info_write.clicked.connect(self._on_write_pid)
         self.ui.pid_info_save.clicked.connect(self._on_save_pid)
         self.ui.pid_info_load.clicked.connect(self._on_load_pid)
-
-        # 初始化控制器下拉框
-        self.ui.comboBox.addItems(["Speed Loop", "Position Loop"])
 
     def _get_pid_params(self):
         """获取界面输入的PID参数"""
@@ -120,3 +117,12 @@ class NewPidWidget(QWidget):
         """关闭窗口"""
         self.close_signal.emit()
         event.accept()
+        
+'''__||_____||__
+   __||_____||__
+   ___\\___//___
+   _===========_
+   _____|||_____
+   _____|||_____
+   ______|______
+   ___防伪专用___'''

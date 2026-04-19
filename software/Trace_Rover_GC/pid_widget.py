@@ -146,15 +146,15 @@ class Ui_Form(object):
 
         self.gridLayout.addWidget(self.pid_info_save, 3, 1, 1, 1)
 
-        self.pid_info_read = QPushButton(self.verticalLayoutWidget_2)
-        self.pid_info_read.setObjectName(u"pid_info_read")
-
-        self.gridLayout.addWidget(self.pid_info_read, 0, 1, 1, 1)
-
         self.pid_info_write = QPushButton(self.verticalLayoutWidget_2)
         self.pid_info_write.setObjectName(u"pid_info_write")
 
-        self.gridLayout.addWidget(self.pid_info_write, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.pid_info_write, 0, 1, 1, 1)
+
+        self.pid_info_read = QPushButton(self.verticalLayoutWidget_2)
+        self.pid_info_read.setObjectName(u"pid_info_read")
+
+        self.gridLayout.addWidget(self.pid_info_read, 0, 0, 1, 1)
 
 
         self.verticalLayout_2.addLayout(self.gridLayout)
@@ -184,7 +184,7 @@ class Ui_Form(object):
         self.o_limit_lable.setText(QCoreApplication.translate("Form", u"output limit:", None))
         self.pid_info_load.setText(QCoreApplication.translate("Form", u"load", None))
         self.pid_info_save.setText(QCoreApplication.translate("Form", u"save", None))
-        self.pid_info_read.setText(QCoreApplication.translate("Form", u"write", None))
-        self.pid_info_write.setText(QCoreApplication.translate("Form", u"read", None))
+        self.pid_info_write.setText(QCoreApplication.translate("Form", u"write", None))
+        self.pid_info_read.setText(QCoreApplication.translate("Form", u"read", None))
     # retranslateUi
 

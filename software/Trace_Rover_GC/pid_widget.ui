@@ -178,14 +178,14 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QPushButton" name="pid_info_read">
+       <widget class="QPushButton" name="pid_info_write">
         <property name="text">
          <string>write</string>
         </property>
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QPushButton" name="pid_info_write">
+       <widget class="QPushButton" name="pid_info_read">
         <property name="text">
          <string>read</string>
         </property>

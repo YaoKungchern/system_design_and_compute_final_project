@@ -23,7 +23,7 @@
 #define TIRE_RADIUS 0.034f ///< 轮子半径
 
 #define MOTOR_PWM_MAX 1000 // 最大PWM占空比
-#define SERVO_PWM_MAX 20000 // 180度舵机最大PWM占空比
+#define SERVO_PWM_MAX 2000 // 180度舵机最大PWM占空比
 #define SERVO_PWM_MIN 500 // 180度舵机最小PWM占空比
 
 

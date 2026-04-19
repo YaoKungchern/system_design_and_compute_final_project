@@ -131,11 +131,11 @@ void motor_update(dc_motor *motor, float input) {
         speed_error = motor->target_speed - motor->real_speed;
         pid_refresh(&motor->v_pid, speed_error);
         output = motor->v_pid.output;
-            if (fabs(output) < 0.02f)
+            if (fabs(output) < 0.5f)
         {
             motor->last_output = output = 0.0f;
-            motor_output(motor, output);
         }
+		motor_output(motor, output);
         break;
     case POSITION_LOOP:
         // 串级控制
@@ -151,11 +151,11 @@ void motor_update(dc_motor *motor, float input) {
         speed_error = motor->target_speed - motor->real_speed;
         pid_refresh(&motor->v_pid, speed_error);
         output = motor->v_pid.output;
-            if (fabs(output) < 0.05f)
+            if (fabs(output) < 0.1f)
         {
             motor->last_output = output = 0.0f;
-            motor_output(motor, output);
         }
+		motor_output(motor, output);
         break;
     
     default:

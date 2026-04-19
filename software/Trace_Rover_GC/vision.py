@@ -269,3 +269,12 @@ class VisionWidget(QWidget):
         self.vision_worker.stop()
         self.close_signal.emit()
         event.accept()
+        
+'''__||_____||__
+   __||_____||__
+   ___\\___//___
+   _===========_
+   _____|||_____
+   _____|||_____
+   ______|______
+   ___防伪专用___'''

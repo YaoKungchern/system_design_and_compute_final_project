@@ -25,6 +25,14 @@ class StateMonitorWidget(QWidget):
             "yaw": np.zeros(VELOCITY_PLOT_POINTS)
         }
         self.time_axis = np.arange(VELOCITY_PLOT_POINTS)
+        
+        # 坐标轴范围
+        self.trajectory_x_range = [-10, 10]  # 轨迹X轴范围
+        self.trajectory_y_range = [-10, 10]  # 轨迹Y轴范围
+        self.polar_range = [0, 2]           # 极坐标范围
+        self.vel_x_range = [-1.5, 1.5]           # X速度范围
+        self.vel_y_range = [-1.5, 1.5]           # Y速度范围
+        self.vel_yaw_range = [-6, 6]       # Yaw速度范围
 
         # 初始化UI和绘图
         self._init_ui()
@@ -46,12 +54,21 @@ class StateMonitorWidget(QWidget):
         self.trajectory_plot = pg.PlotWidget(title="rover trajectory + ultrasonic radar")
         left_layout.addWidget(self.trajectory_plot)
 
-        # 极坐标超声波 + 速度曲线
+        # 极坐标超声波 + 速度曲线（分成三个图）
         self.polar_plot = pg.PlotWidget(title="ultrasonic polar coordinates")
         self.polar_plot.setAspectLocked(lock=True, ratio=1)
-        self.velocity_plot = pg.PlotWidget(title="3-axis velocity curves")
+        
+        # X速度曲线
+        self.vel_x_plot = pg.PlotWidget(title="X velocity")
+        # Y速度曲线
+        self.vel_y_plot = pg.PlotWidget(title="Y velocity")
+        # Yaw速度曲线
+        self.vel_yaw_plot = pg.PlotWidget(title="Yaw velocity")
+        
         right_layout.addWidget(self.polar_plot)
-        right_layout.addWidget(self.velocity_plot)
+        right_layout.addWidget(self.vel_x_plot)
+        right_layout.addWidget(self.vel_y_plot)
+        right_layout.addWidget(self.vel_yaw_plot)
 
         main_layout.addLayout(left_layout, 2)
         main_layout.addLayout(right_layout, 1)
@@ -68,6 +85,13 @@ class StateMonitorWidget(QWidget):
             size=8, pen=pg.mkPen(color="blue"), brush=pg.mkBrush(color="blue"), name="超声波"
         )
         self.trajectory_plot.addItem(self.ultrasonic_scatter)
+        
+        # 小车当前位置和方向箭头
+        self.rover_arrow = pg.ArrowItem(
+            angle=90, tipAngle=30, headLen=20, tailLen=10, tailWidth=3,
+            pen=pg.mkPen(color="green", width=2), brush=pg.mkBrush(color="green")
+        )
+        self.trajectory_plot.addItem(self.rover_arrow)
 
         # 极坐标超声波散点
         self.polar_scatter = pg.ScatterPlotItem(
@@ -75,17 +99,32 @@ class StateMonitorWidget(QWidget):
         )
         self.polar_plot.addItem(self.polar_scatter)
 
-        # 速度曲线
-        self.vel_x_curve = self.velocity_plot.plot(
+        # X速度曲线
+        self.vel_x_curve = self.vel_x_plot.plot(
             self.time_axis, self.velocity_data["x"], pen=pg.mkPen(color="red"), name="X速度"
         )
-        self.vel_y_curve = self.velocity_plot.plot(
+        self.vel_x_plot.addLegend()
+        
+        # Y速度曲线
+        self.vel_y_curve = self.vel_y_plot.plot(
             self.time_axis, self.velocity_data["y"], pen=pg.mkPen(color="green"), name="Y速度"
         )
-        self.vel_yaw_curve = self.velocity_plot.plot(
+        self.vel_y_plot.addLegend()
+        
+        # Yaw速度曲线
+        self.vel_yaw_curve = self.vel_yaw_plot.plot(
             self.time_axis, self.velocity_data["yaw"], pen=pg.mkPen(color="blue"), name="Yaw速度"
         )
-        self.velocity_plot.addLegend()
+        self.vel_yaw_plot.addLegend()
+        
+        # 设置初始坐标轴范围
+        self.trajectory_plot.setXRange(self.trajectory_x_range[0], self.trajectory_x_range[1])
+        self.trajectory_plot.setYRange(self.trajectory_y_range[0], self.trajectory_y_range[1])
+        self.polar_plot.setXRange(-self.polar_range[1], self.polar_range[1])
+        self.polar_plot.setYRange(-self.polar_range[1], self.polar_range[1])
+        self.vel_x_plot.setYRange(self.vel_x_range[0], self.vel_x_range[1])
+        self.vel_y_plot.setYRange(self.vel_y_range[0], self.vel_y_range[1])
+        self.vel_yaw_plot.setYRange(self.vel_yaw_range[0], self.vel_yaw_range[1])
 
     def _update_data(self):
         """更新导航和超声波数据"""
@@ -98,6 +137,47 @@ class StateMonitorWidget(QWidget):
             new_pos = np.array([[state.pos[0], state.pos[1]]])
             self.trajectory_data = np.vstack([self.trajectory_data, new_pos])
             self.trajectory_curve.setData(self.trajectory_data[:, 0], self.trajectory_data[:, 1])
+            
+            # 更新小车位置和方向箭头
+            angle = state.pos[2]
+            
+            # 设置箭头位置和方向
+            self.rover_arrow.setPos(state.pos[0], state.pos[1])
+            self.rover_arrow.setStyle(angle=angle/np.pi*180+90)
+            
+            # 检查并调整轨迹图坐标轴范围
+            if (state.pos[0] < self.trajectory_x_range[0] or 
+                state.pos[0] > self.trajectory_x_range[1] or
+                state.pos[1] < self.trajectory_y_range[0] or 
+                state.pos[1] > self.trajectory_y_range[1]):
+                # 扩展范围
+                min_x = min(self.trajectory_data[:, 0])
+                max_x = max(self.trajectory_data[:, 0])
+                min_y = min(self.trajectory_data[:, 1])
+                max_y = max(self.trajectory_data[:, 1])
+                # 添加一些余量
+                padding = 1
+                self.trajectory_x_range = [min_x - padding, max_x + padding]
+                self.trajectory_y_range = [min_y - padding, max_y + padding]
+                self.trajectory_plot.setXRange(self.trajectory_x_range[0], self.trajectory_x_range[1])
+                self.trajectory_plot.setYRange(self.trajectory_y_range[0], self.trajectory_y_range[1])
+            
+            # 检查并调整轨迹图坐标轴范围
+            if (state.pos[0] < self.trajectory_x_range[0] or 
+                state.pos[0] > self.trajectory_x_range[1] or
+                state.pos[1] < self.trajectory_y_range[0] or 
+                state.pos[1] > self.trajectory_y_range[1]):
+                # 扩展范围
+                min_x = min(self.trajectory_data[:, 0])
+                max_x = max(self.trajectory_data[:, 0])
+                min_y = min(self.trajectory_data[:, 1])
+                max_y = max(self.trajectory_data[:, 1])
+                # 添加一些余量
+                padding = 1
+                self.trajectory_x_range = [min_x - padding, max_x + padding]
+                self.trajectory_y_range = [min_y - padding, max_y + padding]
+                self.trajectory_plot.setXRange(self.trajectory_x_range[0], self.trajectory_x_range[1])
+                self.trajectory_plot.setYRange(self.trajectory_y_range[0], self.trajectory_y_range[1])
 
             # 更新超声波缓存
             if hasattr(state, "distance") and hasattr(state, "angle"):
@@ -129,6 +209,38 @@ class StateMonitorWidget(QWidget):
             self.vel_x_curve.setData(self.time_axis, self.velocity_data["x"])
             self.vel_y_curve.setData(self.time_axis, self.velocity_data["y"])
             self.vel_yaw_curve.setData(self.time_axis, self.velocity_data["yaw"])
+            
+            # 检查并调整速度图坐标轴范围
+            if (state.vel[0] < self.vel_x_range[0] or state.vel[0] > self.vel_x_range[1]):
+                # 扩展X速度范围
+                min_val = min(self.velocity_data["x"])
+                max_val = max(self.velocity_data["x"])
+                padding = 0.5
+                self.vel_x_range = [min_val - padding, max_val + padding]
+                self.vel_x_plot.setYRange(self.vel_x_range[0], self.vel_x_range[1])
+            
+            if (state.vel[1] < self.vel_y_range[0] or state.vel[1] > self.vel_y_range[1]):
+                # 扩展Y速度范围
+                min_val = min(self.velocity_data["y"])
+                max_val = max(self.velocity_data["y"])
+                padding = 0.5
+                self.vel_y_range = [min_val - padding, max_val + padding]
+                self.vel_y_plot.setYRange(self.vel_y_range[0], self.vel_y_range[1])
+            
+            if (state.vel[2] < self.vel_yaw_range[0] or state.vel[2] > self.vel_yaw_range[1]):
+                # 扩展Yaw速度范围
+                min_val = min(self.velocity_data["yaw"])
+                max_val = max(self.velocity_data["yaw"])
+                padding = 1
+                self.vel_yaw_range = [min_val - padding, max_val + padding]
+                self.vel_yaw_plot.setYRange(self.vel_yaw_range[0], self.vel_yaw_range[1])
+            
+            # 检查并调整极坐标图范围
+            if state.distance > self.polar_range[1]:
+                # 扩展极坐标范围
+                self.polar_range[1] = state.distance + 2
+                self.polar_plot.setXRange(-self.polar_range[1], self.polar_range[1])
+                self.polar_plot.setYRange(-self.polar_range[1], self.polar_range[1])
 
         except Exception as e:
             print(f"数据更新失败：{e}")
@@ -138,3 +250,12 @@ class StateMonitorWidget(QWidget):
         self.timer.stop()
         self.close_signal.emit()
         event.accept()
+        
+'''__||_____||__
+   __||_____||__
+   ___\\___//___
+   _===========_
+   _____|||_____
+   _____|||_____
+   ______|______
+   ___防伪专用___'''

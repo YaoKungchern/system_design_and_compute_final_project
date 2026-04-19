@@ -3,7 +3,7 @@
 <title>Static Call Graph - [Trace_Rover\Trace_Rover.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image Trace_Rover\Trace_Rover.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Sat Apr 18 02:10:43 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Sun Apr 19 16:58:44 2026
 <BR><P>
 <H3>Maximum Stack Usage =        376 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -923,7 +923,6 @@ Global Symbols
 <P><STRONG><a name="[ee]"></a>HAL_GPIO_WritePin</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, stm32h7xx_hal_gpio.o(.text.HAL_GPIO_WritePin))
 <BR><BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_GPIO_Init
 <LI><a href="#[117]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_output
-<LI><a href="#[112]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_update
 </UL>
 
 <P><STRONG><a name="[ba]"></a>HAL_GetTick</STRONG> (Thumb, 12 bytes, Stack size 0 bytes, stm32h7xx_hal.o(.text.HAL_GetTick))
@@ -1673,11 +1672,10 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_cb
 </UL>
 
-<P><STRONG><a name="[112]"></a>motor_update</STRONG> (Thumb, 532 bytes, Stack size 40 bytes, actuator.o(.text.motor_update))
+<P><STRONG><a name="[112]"></a>motor_update</STRONG> (Thumb, 328 bytes, Stack size 40 bytes, actuator.o(.text.motor_update))
 <BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = motor_update &rArr; pid_refresh
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GetTick
-<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pid_refresh
 <LI><a href="#[117]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;motor_output
 </UL>
