@@ -64,7 +64,7 @@ class RobotState:   # pid_info + compliance_info + control_info
     y: float = 0.0  # 超声波世界坐标系Y轴坐标
     
     # --- 舵机信息 (0x53) ---
-    servo_angle: float = 0.0  # 舵机角度
+    servo_angle: float = 90.0  # 舵机角度
 
 class trace_rover:
     # def __init__(self, port: str, baudrate=115200)->None:
@@ -211,13 +211,13 @@ class trace_rover:
         data = struct.pack('<BB', rw_flag, controller_id)
         self._send_frame(CMD_PID, data)
 
-    def write_nav(self, pos: list)->None:
+    def write_nav(self, mask: int, pos: list)->None:
         """
         写入导航参数 (Mode, Position)
         """
         rw_flag = 0x00
-        fmt = '<Bffffff'
-        data = struct.pack(fmt, rw_flag, pos[0], pos[1], pos[2], 0.0, 0.0, 0.0)
+        fmt = '<BBffffff'
+        data = struct.pack(fmt, rw_flag, mask, pos[0], pos[1], pos[2], 0.0, 0.0, 0.0)
         # 速度写入不生效
         self._send_frame(CMD_NAV, data)
 
@@ -246,6 +246,7 @@ class trace_rover:
         fmt = '<f'
         data = struct.pack(fmt, angle)
         self._send_frame(CMD_SERVO, data)
+        self.state.servo_angle = angle
 
     # ==========================================================
     #  接收线程
@@ -301,8 +302,8 @@ class trace_rover:
                 data_len = 34
                 fmt = '<BBffffffff'
             elif cmd_id == CMD_NAV:
-                data_len = 25
-                fmt = '<Bffffff'
+                data_len = 26
+                fmt = '<BBffffff'
             elif cmd_id == CMD_CONTROL:
                 data_len = 13
                 fmt = '<Bfff'
@@ -371,9 +372,9 @@ class trace_rover:
 
             elif cmd_id == CMD_NAV:
                 self.state.nav_mode = data[0]
-                self.state.pos = [data[1], data[2], data[3]]
-                self.state.vel = [data[4], data[5], data[6]]
-                print(f"收到反馈 Nav: Pos={self.state.pos}, Vel={self.state.vel}")
+                self.state.pos = [data[2], data[3], data[4]]
+                self.state.vel = [data[5], data[6], data[7]]
+                # print(f"收到反馈 Nav: Pos={self.state.pos}, Vel={self.state.vel}")
 
             elif cmd_id == CMD_CONTROL:
                 self.state.control_mode = data[0]
@@ -384,7 +385,7 @@ class trace_rover:
                 self.state.angle = data[1]
                 self.state.x = data[2]
                 self.state.y = data[3]
-                print(f"收到反馈 Ultrasonic: {self.state.distance}")
+                # print(f"收到反馈 Ultrasonic: {self.state.distance}")
 
 # ==========================================================
 #  测试
@@ -393,57 +394,19 @@ if __name__ == "__main__":
     try:
         # 1. 打开串口 (请根据电脑实际情况修改 COM 号)
         robot = trace_rover("48:87:2D:82:0C:48")
-
-        # 2. 发送一个写指令：设置 PID 的 Kp=1.0
-        print(">>> 正在发送 PID 写入指令 (Kp=1.0)...")
-        # for i in range(5):
-        #     time.sleep(0.5)
-        #     robot.write_pid(controller_id=0x00, kp=10.0, ki=1.0, kd=0.0, i_limit=0.3, o_limit=1.0)
-
-        # 3. 发送一个读请求：问下位机“你现在的参数是多少？”
-        # 稍微延时一下，防止指令太快下位机处理不过来
-        # time.sleep(0.1)
-        # print(">>> 正在发送 PID 读取请求...")
-        # for i in range(5):
-        #     time.sleep(0.5)
-        #     robot.read_pid(controller_id=0x00)
         
-        # time.sleep(1.0)
         for i in range(5):
-            time.sleep(0.5)
-        #     robot.write_control(mode=0x01, value=[0.0, 0.0, 2.0])
-            # robot.write_control(mode=0x02, value=[0.0, 0.25, 5.0])
-            robot.write_control(mode=0x04, value=[0.5, 0.5, 1.57])
-            
-        # time.sleep(5.0)
-        # for i in range(5):
-        #     time.sleep(0.5)
-        #     robot.write_control(mode=0x04, value=[0.0, 0.0, 0.0])
+            time.sleep(0.2)
+            robot.write_control(0x01, [0.0, 0.0, 5])  # 发送一个前进指令，速度值写0.5，其他两个维度写0
 
-        # 4. 模拟主循环，观察数据更新
-        # 实际项目中，这里可能是 GUI 的 update 循环
-        # print(">>> 等待接收数据回传...")
         for i in range(100):
-            time.sleep(0.5)
+            time.sleep(0.2)
             # 获取最新的状态副本
             state = robot.get_state()
             
             robot.read_nav()
-            # time.sleep(0.5)
-            # for i in range(5):
-            #     robot.write_control(mode= 0x04, value=[0.0, 0.0, 1.5])
-            #     time.sleep(0.5)
-            # time.sleep(1.0)
-            # for i in range(5):
-            #     robot.write_control(mode= 0x04, value=[0.0, 0.0, 0.0])
-            #     time.sleep(0.5)
-                
-                
-                
-                
-            # robot.write_control(mode=0x00, value=[0.0, 0.0, 0.0])
-            # print(f"当前状态 pos: {state.pos[0], state.pos[1], state.pos[2]}") # 解开注释可查看
-            # print(f"当前状态 speed: {state.vel[0], state.vel[1], state.vel[2]}") # 解开注释可查看
+            # print(f"distance={state.distance:.2f}, angle={state.angle:.2f}, x={state.x:.2f}, y={state.y:.2f}")
+            print(f"X={state.vel[0]:.2f}, Y={state.vel[1]:.2f}, Yaw={state.vel[2]:.2f}")
 
         # 5. 测试结束，关闭资源
         robot.close()
@@ -454,3 +417,12 @@ if __name__ == "__main__":
         print(f"!!! 无法连接BLE设备，请检查蓝牙是否开启，或者MAC地址是否正确: {e}")
     # except Exception as e:
     #     print(f"!!! 发生未知错误: {e}")
+    
+'''__||_____||__
+   __||_____||__
+   ___\\___//___
+   _===========_
+   _____|||_____
+   _____|||_____
+   ______|______
+   ___防伪专用___'''

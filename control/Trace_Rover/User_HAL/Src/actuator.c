@@ -69,6 +69,16 @@ void motor_output(dc_motor *motor, float input) {
     // 限制输出范围
     input = fmax(input, -MOTOR_PWM_MAX);
     input = fmin(input, MOTOR_PWM_MAX);
+    // 死区处理
+    if(fabs(input) < MOTOR_OUTPUT_DEADBAND) {
+        input = 0.0f;
+    }
+    // 限制输出斜率
+        if(fabs(input - motor->last_output) > MOTOR_OUTPUT_GRADIENT) 
+    {
+        input = motor->last_output + (input > motor->last_output ? MOTOR_OUTPUT_GRADIENT : -MOTOR_OUTPUT_GRADIENT);
+    }
+    motor->last_output = input;
     uint16_t pwm_value = (uint16_t)(fabs(input) * MOTOR_PWM_MAX);
     // 设置PWM占空比
     HAL_GPIO_WritePin(motor->gpio_port_1, motor->gpio_pin_1, input >= 0 ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -118,6 +128,7 @@ void motor_update(dc_motor *motor, float input) {
     motor->last_time = current_time;
     float output;
 	float speed_error;
+    float feedforward = motor->target_speed; // 前馈项，直接使用目标速度作为前馈输出
 
     switch (motor->state)
     {
@@ -130,11 +141,7 @@ void motor_update(dc_motor *motor, float input) {
         motor->target_speed = input;
         speed_error = motor->target_speed - motor->real_speed;
         pid_refresh(&motor->v_pid, speed_error);
-        output = motor->v_pid.output;
-            if (fabs(output) < 0.5f)
-        {
-            motor->last_output = output = 0.0f;
-        }
+        output = motor->v_pid.output + feedforward;
 		motor_output(motor, output);
         break;
     case POSITION_LOOP:
@@ -142,19 +149,12 @@ void motor_update(dc_motor *motor, float input) {
         // 外环：位置环
         motor->target_position = input;
         float position_error = motor->target_position;
-        if (fabs(position_error) < 0.025f) {
-        position_error = 0.0f;
-        }
         pid_refresh(&motor->p_pid, position_error);
         // 内环：速度环
         motor->target_speed = motor->p_pid.output;
         speed_error = motor->target_speed - motor->real_speed;
         pid_refresh(&motor->v_pid, speed_error);
-        output = motor->v_pid.output;
-            if (fabs(output) < 0.1f)
-        {
-            motor->last_output = output = 0.0f;
-        }
+        output = motor->v_pid.output + feedforward;
 		motor_output(motor, output);
         break;
     

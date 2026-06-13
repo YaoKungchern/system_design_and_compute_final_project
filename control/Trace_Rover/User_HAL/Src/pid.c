@@ -64,15 +64,24 @@ float pid_refresh(pid *p_pid, float delta)
 
     p_pid->delta = delta;
 
-    p_pid->delta_i += p_pid->delta * p_pid->dt * p_pid->ki;
-    p_pid->delta_i = fmaxf(fminf(p_pid->delta_i, p_pid->i_limit), -p_pid->i_limit);
+    // 计算临时输出
+    float temp_output = p_pid->kp * p_pid->delta + p_pid->delta_i + 
+                        (p_pid->delta - p_pid->delta_l) / p_pid->dt * p_pid->kd;
+    
+    // 积分抗饱和：只有当输出未饱和时才累积积分项
+    // 防止积分项在输出饱和后继续累积导致失控
+    if(!(temp_output > p_pid->o_limit && delta > 0.0f) && 
+       !(temp_output < -p_pid->o_limit && delta < 0.0f))
+    {
+        p_pid->delta_i += p_pid->delta * p_pid->dt * p_pid->ki;
+        p_pid->delta_i = fmaxf(fminf(p_pid->delta_i, p_pid->i_limit), -p_pid->i_limit);
+    }
 
     p_pid->delta_d = (p_pid->delta - p_pid->delta_l) / p_pid->dt * p_pid->kd;
     p_pid->delta_l = p_pid->delta;
 
-    p_pid->output = fmaxf(fminf(
-        p_pid->kp * p_pid->delta + p_pid->delta_i + p_pid->delta_d, p_pid->o_limit
-    ), -p_pid->o_limit);
+    // 限制最终输出
+    p_pid->output = fmaxf(fminf(temp_output, p_pid->o_limit), -p_pid->o_limit);
     
     return p_pid->output;
 }

@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>251</width>
-    <height>334</height>
+    <height>366</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>251</width>
-    <height>334</height>
+    <height>366</height>
    </size>
   </property>
   <property name="sizeIncrement">
@@ -37,7 +37,7 @@
      <x>10</x>
      <y>170</y>
      <width>231</width>
-     <height>151</height>
+     <height>181</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_1">
@@ -79,6 +79,13 @@
      <widget class="QPushButton" name="pid_button">
       <property name="text">
        <string>PID parameter tuning</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="mission_button">
+      <property name="text">
+       <string>mission planning</string>
       </property>
      </widget>
     </item>

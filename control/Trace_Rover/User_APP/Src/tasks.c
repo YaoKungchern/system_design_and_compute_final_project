@@ -36,6 +36,8 @@ mecanum mecanum_ctrl;
 
 servo_180 servo_cam;
 
+float angle_diff;
+
 void motor_cb(void)
 {
     vector2D value;
@@ -72,27 +74,23 @@ void motor_cb(void)
     case POSITION_LOOP_ROVER_BASE:{
         // 计算目标位置与当前位置的误差（机器人坐标系）
         value = control_value;
-        control_value.x += rover_pos.vector.x;
-        control_value.y += rover_pos.vector.y;
-        control_value.r += rover_pos.vector.r;
-        control_state = POSITION_LOOP_WORLD_BASE;
+        base_sys2D input, output;
+        base_sys_set_by_vector(&input, control_value.x, control_value.y, control_value.r);
+        base2world(&rover_pos, &input, &output);
+        control_value = output.vector;
         value.r = angle_correct_rad(control_value.r);
+
+        control_state = POSITION_LOOP_WORLD_BASE;
         state = POSITION_LOOP;
         break;
     }
     case POSITION_LOOP_WORLD_BASE:{
         // 计算目标位置与当前位置的误差
-        float error_x = control_value.x - rover_pos.vector.x;
-        float error_y = control_value.y - rover_pos.vector.y;
-        float target_r = control_value.r;
-        float current_r = rover_pos.vector.r;
-        float angle_diff = target_r - current_r;
-        angle_diff = angle_correct_rad(angle_diff);
+        base_sys2D input, output;
+        base_sys_set_by_vector(&input, control_value.x, control_value.y, control_value.r);
+        world2base(&rover_pos, &input, &output);
         
-        // 创建目标位置向量，考虑位置误差
-        value.x = error_x;
-        value.y = error_y;
-        value.r = angle_diff;
+        value = output.vector;
         state = POSITION_LOOP;
         break;
     }
@@ -190,8 +188,8 @@ void tasks_init(void)
 
     for(uint8_t i = 0; i < 4; i++)
     {
-        pid_init(&vel_pid[i], 5.0f, 0.5f, 0.05f, 0.3f, 1.0f);
-        pid_init(&pos_pid[i], 1.2f, 0.0f, 0.88f, 0.4f, 1.2f);
+        pid_init(&vel_pid[i], 5.0f, 1.0f, 0.05f, 0.1f, 1.0f);
+        pid_init(&pos_pid[i], 1.2f, 0.0f, 0.0f, 0.0f, 1.0f);
     }
     motor_init(&motor[0], &htim4, TIM_CHANNEL_1, &htim2, GPIOD, GPIO_PIN_8, GPIOD, GPIO_PIN_10, CCW, &vel_pid[0], &pos_pid[0]);
     motor_init(&motor[1], &htim4, TIM_CHANNEL_4, &htim8, GPIOD, GPIO_PIN_1, GPIOD, GPIO_PIN_3, CW, &vel_pid[1], &pos_pid[1]);

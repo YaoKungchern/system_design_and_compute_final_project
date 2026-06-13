@@ -7,6 +7,7 @@ from control import NewControlWidget
 from pid import NewPidWidget
 from navigation import StateMonitorWidget
 from vision import VisionWidget
+from mission import MissionWidget
 from config import MAC_ADDRESS
 
 class NewMainWidget(QWidget):
@@ -25,6 +26,7 @@ class NewMainWidget(QWidget):
         self.pid_widget = None
         self.state_widget = None
         self.vision_widget = None
+        self.mission_widget = None
 
         # 小车通信实例
         self.rover = None
@@ -45,6 +47,7 @@ class NewMainWidget(QWidget):
         self.ui.vision_button.clicked.connect(self._open_vision_widget)
         self.ui.navigation_button.clicked.connect(self._open_state_widget)
         self.ui.pid_button.clicked.connect(self._open_pid_widget)
+        self.ui.mission_button.clicked.connect(self._open_mission_widget)
 
         # 初始状态
         self.ui.connect_state.setText("unconnected")
@@ -125,9 +128,17 @@ class NewMainWidget(QWidget):
         self.pid_widget.show()
         self.pid_widget.raise_()
 
+    def _open_mission_widget(self):
+        """打开任务规划窗口（单例）"""
+        if not self.mission_widget:
+            self.mission_widget = MissionWidget(self.rover, None)
+            self.mission_widget.close_signal.connect(lambda: setattr(self, "mission_widget", None))
+        self.mission_widget.show()
+        self.mission_widget.raise_()
+
     def _close_all_sub_widgets(self):
         """关闭所有子窗口"""
-        for widget in [self.control_widget, self.pid_widget, self.state_widget, self.vision_widget]:
+        for widget in [self.control_widget, self.pid_widget, self.state_widget, self.vision_widget, self.mission_widget]:
             if widget:
                 widget.close()
 

@@ -3,4 +3,6 @@ bleak
 pyqtgraph
 pygame
 ultralytics
-json5
+numpy
+opencv-python
+torch

@@ -107,7 +107,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             if(uart3_buffer[3] == (uint8_t)((0xFF+uart3_buffer[1]+uart3_buffer[2]) & 0xFF))
             {
 				float dis = (float)(uart3_buffer[1]<<8 | uart3_buffer[2]) / 1000.0f;
-				if(dis < 1.0f)
+				if(dis < 1.0f && dis >0.1f)
 				{
 					ultrasonic_sys.distance = dis;
 					tx_buffer[0]=STEP_MOTOR_ID;
@@ -201,12 +201,12 @@ void uart2_solve(uint8_t *buf)
 
 void uart1_solve(uint8_t *buf)
 {
-    if(buf[1] == 0x36 && buf[7] == STEP_MOTOR_CHECK)
+    if(buf[7] == STEP_MOTOR_CHECK)
     {
         uint32_t angle;
         memcpy(&angle, buf + 3, sizeof(uint32_t));
         ultrasonic_sys.angle = -(buf[2]*2-1) * (angle * 2 * PI) / 65536.0f;
-        ultrasonic_sys.angle = angle_correct_rad(ultrasonic_sys.angle-ANGLE_DIFF);
+        ultrasonic_sys.angle = angle_correct_rad(ultrasonic_sys.angle);
         ultrasonic_info ultrasonic_buffer;
         write_ultrasonic_info(&ultrasonic_buffer);
     }
@@ -221,7 +221,12 @@ void write_control_info(control_info *p_control)
 
 void write_navigation_info(navigation_info *p_navigation)
 {
-    rover_pos.vector = p_navigation->position;
+    if(p_navigation->control_id & 0x01)
+    rover_pos.vector.x = p_navigation->position.x;
+    if(p_navigation->control_id>>1 & 0x01)
+    rover_pos.vector.y = p_navigation->position.y;
+    if(p_navigation->control_id>>2 & 0x01)
+    rover_pos.vector.r = p_navigation->position.r;
     vector2matrix(&rover_pos);
 
     mecanum_inverse_kinematics(&mecanum_pos, p_navigation->position);

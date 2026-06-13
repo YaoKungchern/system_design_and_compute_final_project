@@ -28,19 +28,26 @@ float angle_correct_deg(float angle) {
 }
 
 /**
- * @brief 角度修正函数，将角度限制在-PI到PI之间
- * 
- * @param angle 输入角度，单位为弧度
- * @return float 修正后的角度，单位为弧度
+ * @brief 弧度制下角度值矫正
+ *
+ * @param angle 待矫正角度值
+ * @return float 正确角度值
  */
-float angle_correct_rad(float angle) {
-    while (angle >= PI) {
-        angle -= 2 * PI;
+float angle_correct_rad(float angle)
+{
+    // 使用 fmod 进行更精确的角度校正
+    // 将角度限制在 (-PI, PI] 范围内
+    float remainder = fmodf(angle, 2 * PI);
+    
+    // fmod 返回值的符号与被除数相同
+    // 需要处理边界情况：当余数为 -PI 时，转换为 PI
+    if (remainder <= -PI) {
+        remainder += 2 * PI;
+    } else if (remainder > PI) {
+        remainder -= 2 * PI;
     }
-    while (angle < -PI) {
-        angle += 2 * PI;
-    }
-    return angle;
+    
+    return remainder;
 }
 
 /**

@@ -53,6 +53,7 @@ typedef struct
 typedef struct
 {
     uint8_t rw_flag; // 读写标志位，0表示写，1表示读
+    uint8_t control_id; // 控制ID
     vector2D position; // 机器人位置
     vector2D velocity; // 机器人速度
 }navigation_info;

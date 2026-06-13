@@ -1,9 +1,0 @@
-/**********************************************************
-***	ZDT_X57闭环步进
-***	编写作者：  ZHANGDATOU
-***	技术支持：  张大头闭环伺服
-***	淘宝店铺：  https://zhangdatou.taobao.com
-***	CSDN博客：http s://blog.csdn.net/zhangdatou666
-***	bilibili_B站：https://space.bilibili.com/486903750/?spm_id_from=333.999.0.0
-***	qq交流群：  262438510
-**********************************************************/

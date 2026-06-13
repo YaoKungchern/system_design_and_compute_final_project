@@ -1,0 +1,128 @@
+[
+    {
+        "name": "state",
+        "params": {
+            "state": "pos_world",
+            "mov": [
+                -0.5,
+                -0.5,
+                -1.5
+            ]
+        }
+    },
+    {
+        "name": "delay",
+        "params": 3.0
+    },
+    {
+        "name": "mov",
+        "params": [
+            0.5,
+            -0.5,
+            -1.5
+        ]
+    },
+    {
+        "name": "delay",
+        "params": 3.0
+    },
+    {
+        "name": "mov",
+        "params": [
+            0.5,
+            -0.5,
+            0.0
+        ]
+    },
+    {
+        "name": "servo",
+        "params": 120.0
+    },
+    {
+        "name": "delay",
+        "params": 5.0
+    },
+    {
+        "name": "mov",
+        "params": [
+            0.5,
+            0.5,
+            0.0
+        ]
+    },
+    {
+        "name": "delay",
+        "params": 3.0
+    },
+    {
+        "name": "mov",
+        "params": [
+            0.5,
+            0.5,
+            1.5
+        ]
+    },
+    {
+        "name": "delay",
+        "params": 3.0
+    },
+    {
+        "name": "mov",
+        "params": [
+            -0.5,
+            0.5,
+            1.5
+        ]
+    },
+    {
+        "name": "delay",
+        "params": 3.0
+    },
+    {
+        "name": "mov",
+        "params": [
+            -0.5,
+            0.5,
+            3.1
+        ]
+    },
+    {
+        "name": "delay",
+        "params": 3.0
+    },
+    {
+        "name": "mov",
+        "params": [
+            -0.5,
+            -0.5,
+            3.1
+        ]
+    },
+    {
+        "name": "delay",
+        "params": 3.0
+    },
+    {
+        "name": "mov",
+        "params": [
+            -0.5,
+            -0.5,
+            -1.6
+        ]
+    },
+    {
+        "name": "delay",
+        "params": 3.0
+    },
+    {
+        "name": "state",
+        "params": {
+            "state": "open",
+            "mov": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        }
+    }
+]

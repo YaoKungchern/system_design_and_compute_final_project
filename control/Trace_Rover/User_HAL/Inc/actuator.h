@@ -22,6 +22,9 @@
 #define ENCODER_GEAR_RATIO 1.0f ///< 编码器齿轮比
 #define TIRE_RADIUS 0.034f ///< 轮子半径
 
+#define MOTOR_OUTPUT_GRADIENT 0.05f // 电机输出斜率限制，单位为每次更新的最大变化量
+#define MOTOR_OUTPUT_DEADBAND 0.05f // 电机输出死区，绝对值小于该值时视为0
+
 #define MOTOR_PWM_MAX 1000 // 最大PWM占空比
 #define SERVO_PWM_MAX 2000 // 180度舵机最大PWM占空比
 #define SERVO_PWM_MIN 500 // 180度舵机最小PWM占空比
