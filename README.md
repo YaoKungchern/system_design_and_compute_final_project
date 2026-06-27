@@ -233,7 +233,7 @@ system_design_and_compute_final_project/
 | `（模型装配体）.SLDASM` | **整车总装配**，集成底盘、上层板、电机、履带、相机、电池、PCB 支架等所有零件。 |
 | `上层装配1.SLDASM` | 上层板及传感器组件的装配（相机支架、铜柱、图传模块等）。 |
 | `Board.step.STEP.SLDASM` | PCB / 主控板安装支架的装配。 |
-| `Enter.step.STEP.SLDASM` / `Next.step.STEP.SLDASM` | 外壳/舱门相关的子装配体，用于覆盖车身并预留接口。 |
+| `Enter.step.STEP.SLDASM` / `Next.step.STEP.SLDASM` | 外壳相关的子装配体，用于覆盖车身并预留接口。 |
 | `J1/J3/J6.step.STEP.SLDASM` | 不同规格连接器在整机中的装配单元。 |
 | `ZDT_X28_L28Motor.STEP.SLDASM` | 28 步进电机驱动板的装配体。 |
 | `ZDT_X28_V1.2_PCB.step.STEP.SLDASM` | 步进电机驱动板 PCB 的装配体版本。 |
@@ -281,7 +281,7 @@ system_design_and_compute_final_project/
 
 | 文件 | 说明 |
 | --- | --- |
-| `80l.SLDPRT` / `80r.SLDPRT` / `80l.2.SLDPRT` / `80r.2.SLDPRT` | **左右履带/轮系**零件的 1 版与 2 版迭代。 |
+| `80l.SLDPRT` / `80r.SLDPRT` / `80l.2.SLDPRT` / `80r.2.SLDPRT` | **左右轮系**零件的 1 版与 2 版迭代。 |
 | `SHIM_2.7x4x6.STEP.SLDPRT` | 调整间隙用垫片。 |
 
 #### ⑥ 连接器与线束（`.SLDPRT`）
